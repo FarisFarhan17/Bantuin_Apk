@@ -1,0 +1,26 @@
+import 'package:flutter/material.dart';
+
+class CustomSearchBar extends StatelessWidget {
+  const CustomSearchBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      elevation: 2,
+      borderRadius: BorderRadius.circular(16),
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: 'Cari yang ingin kamu bantu',
+          prefixIcon: Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+        ),
+      ),
+    );
+  }
+} 

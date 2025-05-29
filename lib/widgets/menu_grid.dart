@@ -1,0 +1,43 @@
+import 'package:flutter/material.dart';
+
+class MenuGrid extends StatelessWidget {
+  final void Function(int) onTap;
+  const MenuGrid({super.key, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final Color green = Color(0xFF43e97b);
+    final List<Map<String, dynamic>> menu = [
+      {'icon': Icons.volunteer_activism, 'label': 'Donasi', 'color': green},
+      {'icon': Icons.assignment_turned_in, 'label': 'Status Donasi', 'color': green},
+      {'icon': Icons.location_on, 'label': 'Lokasi Yayasan', 'color': green},
+      {'icon': Icons.info_outline, 'label': 'Informan', 'color': green},
+    ];
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        childAspectRatio: 0.75,
+      ),
+      itemCount: menu.length,
+      itemBuilder: (context, i) {
+        return GestureDetector(
+          onTap: () => onTap(i),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                backgroundColor: menu[i]['color'].withOpacity(0.15),
+                child: Icon(menu[i]['icon'], color: menu[i]['color'], size: 28),
+                radius: 28,
+              ),
+              SizedBox(height: 8),
+              Text(menu[i]['label'], style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+} 
