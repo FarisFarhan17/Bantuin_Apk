@@ -100,6 +100,8 @@ class FirebaseService {
         'penggalang': 'Simpul Setara',
         'verifikasi': true,
         'jumlah_donasi': 0,
+        'lokasi': 'Ternate',
+        'sisa_hari': 100,
       });
       return [Donasi(
         id: 'donasi_1',
@@ -119,6 +121,8 @@ class FirebaseService {
         penggalang: 'Simpul Setara',
         verifikasi: true,
         jumlahDonasi: 0,
+        lokasi: 'Ternate',
+        sisaHari: 100,
       )];
     }
     return snapshot.docs.map((doc) => Donasi.fromMap(doc.id, doc.data())).toList();

@@ -8,6 +8,9 @@ import '../../widgets/donasi_card.dart';
 import '../../services/firebase_service.dart';
 import '../../models/donasi.dart';
 import '../riwayat_donasi_page.dart'; // Import the history page
+import '../chat_page.dart'; // Import the new chat page
+import '../profile_page.dart'; // Import the new profile page
+import '../donasi_list_page.dart'; // Import the new donasi list page
 
 class HomeDonatur extends StatefulWidget {
   final int initialIndex;
@@ -34,8 +37,15 @@ class HomeDonaturState extends State<HomeDonatur> {
   bool loading = true;
   late int _selectedIndex;
 
-  static List<Widget> _widgetOptions = <Widget>[
-    // Home Page Content
+  List<Widget> _widgetOptions = <Widget>[]; // Make it an instance member
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex;
+    _loadData();
+     _widgetOptions = <Widget>[
+    // Beranda Page Content (existing Home Page)
     SingleChildScrollView(
       child: Column(
         children: [
@@ -70,10 +80,25 @@ class HomeDonaturState extends State<HomeDonatur> {
                   SizedBox(height: 14),
                   Divider(thickness: 0.7, color: Colors.grey[300]),
                   SizedBox(height: 14),
-                  Text(
-                    'Donasi Pilihan',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                   Row( // Wrap in Row to place Lihat semua > next to text
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                       Text(
+                        'Donasi Pilihan',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          // Navigate to the DonasiListPage and show Aktif tab
+                           HomeDonatur.switchToTab(context, 1); // Context is now available
+                        },
+                        child: Text(
+                          'Lihat semua >',
+                          style: TextStyle(fontSize: 14, color: Colors.blue), // Adjust color as needed
+                        ),
+                      ),
+                    ],
+                  ), // This closes the Row
                   // DonasiCards will be added here after loading data
                 ],
               ),
@@ -82,30 +107,13 @@ class HomeDonaturState extends State<HomeDonatur> {
         ],
       ),
     ),
-    // Donasi Page Content (Placeholder)
-    Center(
-      child: Text(
-        'Donasi Page'
-      ),
-    ),
-    // Riwayat Page Content
-    Container(
-      color: Colors.white,
-      child: RiwayatDonasiPage(),
-    ),
-    // Profile Page Content (Placeholder)
-    Center(
-      child: Text(
-        'Profile Page'
-      ),
-    ),
+    // Donasi Page Content
+    DonasiListPage(), // Use the new DonasiListPage
+    // Chat Page Content
+    ChatPage(), // Use the new ChatPage widget
+    // Profile Page Content
+    ProfilePage(), // Use the new ProfilePage widget
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedIndex = widget.initialIndex;
-    _loadData();
   }
 
   Future<void> _loadData() async {
@@ -154,13 +162,29 @@ class HomeDonaturState extends State<HomeDonatur> {
                     SizedBox(height: 14),
                     Divider(thickness: 0.7, color: Colors.grey[300]),
                     SizedBox(height: 14),
-                    Text(
-                      'Donasi Pilihan',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
+                    Row( // Wrap in Row to place Lihat semua > next to text
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Donasi Pilihan',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            // Navigate to the DonasiListPage and show Aktif tab
+                             HomeDonatur.switchToTab(context, 1); // Context is now available
+                          },
+                          child: Text(
+                            'Lihat semua >',
+                            style: TextStyle(fontSize: 14, color: Colors.blue), // Adjust color as needed
+                          ),
+                        ),
+                      ],
+                    ), // This closes the Row
                     ...donasiList.map((d) => DonasiCard(
                           donasi: d,
                           formatter: NumberFormat.decimalPattern('id'),
+                          showProgressPercentage: true, // Pass a flag to show percentage
                         )),
                   ],
                 ),
@@ -220,12 +244,12 @@ class HomeDonaturState extends State<HomeDonatur> {
             label: 'Donasi',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Riwayat',
+            icon: Icon(Icons.chat),
+            label: 'Chat',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: 'Profile',
+            label: 'Profil',
           ),
         ],
       ),

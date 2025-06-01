@@ -6,7 +6,8 @@ import '../screens/donasi_detail_page.dart';
 class DonasiCard extends StatelessWidget {
   final Donasi donasi;
   final NumberFormat formatter;
-  const DonasiCard({super.key, required this.donasi, required this.formatter});
+  final bool showProgressPercentage;
+  const DonasiCard({super.key, required this.donasi, required this.formatter, this.showProgressPercentage = false});
 
   @override
   Widget build(BuildContext context) {
@@ -64,9 +65,22 @@ class DonasiCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Target: Rp ${formatter.format(donasi.target)}', style: TextStyle(fontSize: 13)),
-                      Text('Terkumpul: Rp 0', style: TextStyle(fontSize: 13, color: Colors.green)),
+                      Text('Terkumpul: Rp ${formatter.format(donasi.terkumpul)}', style: TextStyle(fontSize: 13, color: Colors.green)),
                     ],
                   ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Sisa hari: ${donasi.sisaHari}',
+                    style: TextStyle(fontSize: 13, color: Colors.red),
+                  ),
+                  if (showProgressPercentage)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        '${(progressDana * 100).toStringAsFixed(1)}% tercapai dari target',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    ),
                 ],
               ),
             ),

@@ -11,6 +11,8 @@ class Donasi {
   final String penggalang;
   final bool verifikasi;
   final int jumlahDonasi;
+  final String lokasi;
+  final int sisaHari;
 
   Donasi({
     required this.id,
@@ -25,6 +27,8 @@ class Donasi {
     required this.penggalang,
     required this.verifikasi,
     required this.jumlahDonasi,
+    required this.lokasi,
+    required this.sisaHari,
   });
 
   factory Donasi.fromMap(String id, Map<String, dynamic> data) {
@@ -41,6 +45,8 @@ class Donasi {
       penggalang: data['penggalang'] ?? '',
       verifikasi: data['verifikasi'] ?? false,
       jumlahDonasi: data['jumlah_donasi'] ?? 0,
+      lokasi: data['lokasi'] ?? '',
+      sisaHari: data['sisa_hari'] ?? 0,
     );
   }
 
@@ -57,6 +63,8 @@ class Donasi {
       'penggalang': penggalang,
       'verifikasi': verifikasi,
       'jumlah_donasi': jumlahDonasi,
+      'lokasi': lokasi,
+      'sisa_hari': sisaHari,
     };
   }
 }
