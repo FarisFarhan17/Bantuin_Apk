@@ -3,19 +3,24 @@ import 'package:intl/intl.dart';
 import '../services/firebase_service.dart';
 import '../models/donasi.dart'; // Assuming this is your model for active donations
 import '../models/donation_history_entry.dart'; // Assuming this is your model for history entries
-import '../widgets/donasi_card.dart'; // Import the DonasiCard widget
+
+import '../widgets/donasi_list_page_card.dart'; // Import the new DonasiListPageCard
 
 enum DonasiFilter { aktif, riwayat }
 
 class DonasiListPage extends StatefulWidget {
-  const DonasiListPage({super.key});
+  final DonasiFilter initialFilter;
+  const DonasiListPage({
+    super.key,
+    this.initialFilter = DonasiFilter.aktif,
+  });
 
   @override
   State<DonasiListPage> createState() => _DonasiListPageState();
 }
 
 class _DonasiListPageState extends State<DonasiListPage> {
-  DonasiFilter _currentFilter = DonasiFilter.aktif;
+  late DonasiFilter _currentFilter;
   final FirebaseService _firebaseService = FirebaseService();
   late Future<List<Donasi>> _activeDonasiFuture;
   late Future<List<DonationHistoryEntry>> _donationHistoryFuture;
@@ -25,7 +30,6 @@ class _DonasiListPageState extends State<DonasiListPage> {
   final TextEditingController _locationFilterController = TextEditingController();
 
   // Filter state variables
-  bool _isFilterMenuVisible = false;
   String _selectedTimeFilter = 'Terbaru'; // Default time filter
   String _selectedLocationFilter = 'Semua Provinsi'; // Default location filter
   final List<String> _timeFilterOptions = ['Terbaru', 'Terurgent'];
@@ -34,8 +38,19 @@ class _DonasiListPageState extends State<DonasiListPage> {
   @override
   void initState() {
     super.initState();
+    _currentFilter = widget.initialFilter;
     _loadData();
     _locationFilterController.addListener(_onLocationFilterChanged);
+  }
+
+  @override
+  void didUpdateWidget(DonasiListPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialFilter != widget.initialFilter) {
+      setState(() {
+        _currentFilter = widget.initialFilter;
+      });
+    }
   }
 
   @override
@@ -101,10 +116,6 @@ class _DonasiListPageState extends State<DonasiListPage> {
     });
   }
 
-  void _toggleFilterMenu() {
-    // This method will no longer be needed as we'll use Scaffold.openEndDrawer
-  }
-
   void _applyTimeFilter(String filter) {
     setState(() {
       _selectedTimeFilter = filter;
@@ -126,7 +137,6 @@ class _DonasiListPageState extends State<DonasiListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       endDrawer: Drawer(
         child: SafeArea(
           child: Padding(
@@ -172,61 +182,72 @@ class _DonasiListPageState extends State<DonasiListPage> {
       ),
       body: Column(
         children: [
-          // Search bar with filter icon (above filter buttons) - Swapped position
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
+          // Wrap search bar and filter buttons in a Container for background
+          Container(
+            color: Color.fromARGB(255, 183, 239, 208), // Light color from Home page gradient
+            child: Column( // Use a Column to arrange the search bar and filter buttons
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _locationFilterController,
-                    decoration: InputDecoration(
-                      hintText: 'Cari berdasarkan lokasi...',
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none, // Fixed linter error
+                // Search bar with filter icon (above filter buttons) - Swapped position
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _locationFilterController,
+                          decoration: InputDecoration(
+                            hintText: 'Cari berdasarkan lokasi...',
+                            prefixIcon: Icon(Icons.search),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide.none, // Fixed linter error
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0), // Adjust vertical padding here
+                          ),
+                          onChanged: (value) => _filterDonations(),
+                        ),
                       ),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                    onChanged: (value) => _filterDonations(),
+                      SizedBox(width: 16), // Space between search and filter
+                      Builder(
+                        builder: (context) => GestureDetector(
+                          onTap: () => Scaffold.of(context).openEndDrawer(),
+                          child: Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.green, // Explicitly set the green color
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(Icons.filter_list, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(width: 16), // Space between search and filter
-                GestureDetector(
-                  onTap: () => Scaffold.of(context).openEndDrawer(),
-                  child: Container(
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Color(0xFF43e97b),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(Icons.filter_list, color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Aktif/Riwayat Filter Buttons (below search bar) - Swapped position
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                  child: FilterButton(
-                    label: 'Aktif',
-                    isSelected: _currentFilter == DonasiFilter.aktif,
-                    onTap: () => _onFilterChanged(DonasiFilter.aktif),
-                  ),
-                ),
-                SizedBox(width: 16), // Space between buttons
-                Expanded(
-                  child: FilterButton(
-                    label: 'Riwayat',
-                    isSelected: _currentFilter == DonasiFilter.riwayat,
-                    onTap: () => _onFilterChanged(DonasiFilter.riwayat),
+                // Aktif/Riwayat Filter Buttons (below search bar) - Swapped position
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: FilterButton(
+                          label: 'Aktif',
+                          isSelected: _currentFilter == DonasiFilter.aktif,
+                          onTap: () => _onFilterChanged(DonasiFilter.aktif),
+                        ),
+                      ),
+                      SizedBox(width: 16), // Space between buttons
+                      Expanded(
+                        child: FilterButton(
+                          label: 'Riwayat',
+                          isSelected: _currentFilter == DonasiFilter.riwayat,
+                          onTap: () => _onFilterChanged(DonasiFilter.riwayat),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -265,20 +286,19 @@ class _DonasiListPageState extends State<DonasiListPage> {
                          _filteredDonasiList.sort((a, b) => a.sisaHari.compareTo(b.sisaHari));
                       }
 
-                      return ListView.builder(
-                        padding: EdgeInsets.all(16),
-                        itemCount: _filteredDonasiList.length,
-                        itemBuilder: (context, index) {
-                          final donasi = _filteredDonasiList[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 16.0),
-                            child: DonasiCard(
+                      return Container( // Wrap ListView.builder with Container
+                        color: Colors.grey[100], // Consistent grey background here
+                        child: ListView.builder(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Adjust padding
+                          itemCount: _filteredDonasiList.length,
+                          itemBuilder: (context, index) {
+                            final donasi = _filteredDonasiList[index];
+                            return DonasiListPageCard(
                               donasi: donasi,
                               formatter: formatter,
-                              showProgressPercentage: true,
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       );
                     },
                   );
@@ -294,43 +314,46 @@ class _DonasiListPageState extends State<DonasiListPage> {
                         return Center(child: Text('Belum ada riwayat donasi.'));
                       } else {
                         final donationHistory = snapshot.data!;
-                        return ListView.builder(
-                          padding: const EdgeInsets.all(8.0),
-                          itemCount: donationHistory.length,
-                          itemBuilder: (context, index) {
-                            final entry = donationHistory[index];
-                            return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 8.0),
-                              elevation: 2.0,
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      entry.donasiTitle,
-                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      'Jumlah Donasi: Rp ${formatter.format(entry.amount)}',
-                                      style: TextStyle(fontSize: 14),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      'Status: ${entry.status}', // Display status
-                                      style: TextStyle(fontSize: 14, color: entry.status == 'Pending' ? Colors.orange : Colors.green), // Style status text
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      'Tanggal: ${DateFormat('dd/MM/yyyy HH:mm').format(entry.timestamp)}', // Formatted timestamp
-                                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                                    ),
-                                  ],
+                        return Container( // Wrap ListView.builder with Container
+                          color: Colors.grey[100], // Consistent grey background here
+                          child: ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Adjust padding
+                            itemCount: donationHistory.length,
+                            itemBuilder: (context, index) {
+                              final entry = donationHistory[index];
+                              return Card(
+                                margin: const EdgeInsets.symmetric(vertical: 8.0),
+                                elevation: 2.0,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        entry.donasiTitle,
+                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        'Jumlah Donasi: Rp ${formatter.format(entry.amount)}',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        'Status: ${entry.status}', // Display status
+                                        style: TextStyle(fontSize: 14, color: entry.status == 'Pending' ? Colors.orange : Colors.green), // Style status text
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        'Tanggal: ${DateFormat('dd/MM/yyyy HH:mm').format(entry.timestamp)}', // Formatted timestamp
+                                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         );
                       }
                     },
@@ -363,15 +386,15 @@ class FilterButton extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected ? Color(0xFF43e97b) : Colors.white,
+          color: isSelected ? Colors.green : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Color(0xFF43e97b))
+          border: Border.all(color: Colors.green)
         ),
         child: Center(
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : Color(0xFF43e97b),
+              color: isSelected ? Colors.white : Colors.green,
               fontWeight: FontWeight.bold
             ),
           ),

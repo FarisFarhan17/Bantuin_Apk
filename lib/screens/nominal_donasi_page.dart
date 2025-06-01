@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../services/firebase_service.dart'; // Import FirebaseService
 import '../models/donasi.dart'; // Import Donasi model
 import 'home/home_donatur.dart';
+import 'donasi_list_page.dart';
 
 class NominalDonasiPage extends StatefulWidget {
   final int donationAmount;
@@ -71,7 +72,10 @@ class _NominalDonasiPageState extends State<NominalDonasiPage> {
                 Navigator.of(context).pop();
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(
-                    builder: (context) => HomeDonatur(initialIndex: 2),
+                    builder: (context) => HomeDonatur(
+                      initialIndex: 1, // Donasi tab
+                      initialDonasiFilter: DonasiFilter.riwayat, // Show Riwayat
+                    ),
                   ),
                   (route) => false,
                 );

@@ -12,7 +12,7 @@ class SaldoCard extends StatefulWidget {
 }
 
 class _SaldoCardState extends State<SaldoCard> {
-  bool _isBalanceVisible = true;
+  bool _isBalanceVisible = false;
 
   @override
   void initState() {
@@ -23,7 +23,7 @@ class _SaldoCardState extends State<SaldoCard> {
   Future<void> _loadBalanceVisibility() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _isBalanceVisible = prefs.getBool('isBalanceVisible') ?? true;
+      _isBalanceVisible = prefs.getBool('isBalanceVisible') ?? false;
     });
   }
 

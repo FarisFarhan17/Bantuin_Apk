@@ -64,23 +64,16 @@ class DonasiCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Target: Rp ${formatter.format(donasi.target)}', style: TextStyle(fontSize: 13)),
-                      Text('Terkumpul: Rp ${formatter.format(donasi.terkumpul)}', style: TextStyle(fontSize: 13, color: Colors.green)),
+                      Text(
+                        'Terkumpul: Rp ${formatter.format(donasi.terkumpul)}',
+                        style: TextStyle(fontSize: 13, color: Colors.green, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Sisa hari: ${donasi.sisaHari}',
+                        style: TextStyle(fontSize: 13, color: Colors.red, fontWeight: FontWeight.bold),
+                      ),
                     ],
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Sisa hari: ${donasi.sisaHari}',
-                    style: TextStyle(fontSize: 13, color: Colors.red),
-                  ),
-                  if (showProgressPercentage)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4.0),
-                      child: Text(
-                        '${(progressDana * 100).toStringAsFixed(1)}% tercapai dari target',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      ),
-                    ),
                 ],
               ),
             ),
