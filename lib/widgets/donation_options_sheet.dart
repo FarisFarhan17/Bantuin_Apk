@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../models/donasi.dart';
 import '../screens/nominal_donasi_page.dart';
 import '../services/firebase_service.dart';
+import '../widgets/yayasan_selection_sheet.dart';
 
 class DonationOptionsSheet extends StatefulWidget {
   final Donasi donasi;
@@ -289,7 +290,7 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
                       ),
                     ),
                   ),
-                  if (_currentStep > 0) ...[
+                  if (_currentStep > 0 && _currentStep < 2) ...[
                     SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
@@ -305,7 +306,7 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
                         onPressed: _isLoading ? null : _handleNextStep,
                         child: _isLoading 
                           ? CircularProgressIndicator(color: Colors.white) 
-                          : Text(_currentStep == 2 ? 'Selesai' : 'Lanjutkan Donasi'),
+                          : Text('Lanjutkan Donasi'),
                       ),
                     ),
                   ],
@@ -328,7 +329,7 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
                       ],
                     ],
                     SizedBox(height: 24),
-                    if (_currentStep > 0) ...[
+                    if (_currentStep > 0 && _currentStep < 2) ...[
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -343,7 +344,7 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
                           onPressed: _isLoading ? null : _handleNextStep,
                           child: _isLoading 
                             ? CircularProgressIndicator(color: Colors.white) 
-                            : Text(_currentStep == 2 ? 'Selesai' : 'Lanjutkan Donasi'),
+                            : Text('Lanjutkan Donasi'),
                         ),
                       ),
                     ],
@@ -844,6 +845,27 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
                   setState(() {
                     selectedDeliveryType = 'drop_off';
                   });
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => YayasanSelectionSheet(
+                      onYayasanSelected: (yayasan) {
+                        Navigator.pop(context, {
+                          'items': itemSelected.entries
+                              .where((entry) => entry.value)
+                              .map((entry) => {
+                                    'name': entry.key,
+                                    'quantity': itemQuantities[entry.key],
+                                    'photo': itemPhotos[entry.key],
+                                  })
+                              .toList(),
+                          'delivery_type': selectedDeliveryType,
+                          'yayasan': yayasan,
+                        });
+                      },
+                    ),
+                  );
                 },
                 child: Column(
                   children: [
@@ -865,6 +887,17 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
                 onPressed: () {
                   setState(() {
                     selectedDeliveryType = 'pick_up';
+                  });
+                  Navigator.pop(context, {
+                    'items': itemSelected.entries
+                        .where((entry) => entry.value)
+                        .map((entry) => {
+                              'name': entry.key,
+                              'quantity': itemQuantities[entry.key],
+                              'photo': itemPhotos[entry.key],
+                            })
+                        .toList(),
+                    'delivery_type': selectedDeliveryType,
                   });
                 },
                 child: Column(

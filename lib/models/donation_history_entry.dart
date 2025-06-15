@@ -18,7 +18,7 @@ class DonationHistoryEntry {
   });
 
   factory DonationHistoryEntry.fromMap(String id, Map<String, dynamic> map) {
-    return DonationHistoryEntry(
+    return DonationHistoryEntry( 
       id: id,
       userId: map['userId'] ?? '',
       donasiId: map['donasiId'] ?? '',
