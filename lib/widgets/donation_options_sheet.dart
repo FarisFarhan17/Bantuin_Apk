@@ -7,7 +7,7 @@ import '../models/yayasan.dart';
 import '../screens/nominal_donasi_page.dart';
 import '../services/firebase_service.dart';
 import '../widgets/yayasan_selection_sheet.dart';
-import '../screens/donasi_status_page.dart';
+import '../screens/donasi_status_list_page.dart';
 
 class DonationOptionsSheet extends StatefulWidget {
   final Donasi donasi;
@@ -280,21 +280,10 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
         print('Lon: ${yayasan.lon}');
         
         // Navigate to status page
-        Navigator.push(
+        Navigator.pushReplacement(
           currentContext,
           MaterialPageRoute(
-            builder: (context) => DonasiStatusPage(
-              donasi: widget.donasi,
-              yayasan: yayasan,
-              items: itemSelected.entries
-                  .where((entry) => entry.value)
-                  .map((entry) => {
-                        'name': entry.key,
-                        'quantity': itemQuantities[entry.key],
-                        'photo': itemPhotos[entry.key],
-                      })
-                  .toList(),
-            ),
+            builder: (context) => DonasiStatusListPage(),
           ),
         );
       }

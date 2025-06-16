@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/firebase_service.dart'; // Import FirebaseService
 import '../models/donasi.dart'; // Import Donasi model
-import 'home/home_donatur.dart';
-import 'donasi_list_page.dart';
+import 'donasi_status_list_page.dart';
 
 class NominalDonasiPage extends StatefulWidget {
   final int donationAmount;
@@ -69,15 +68,24 @@ class _NominalDonasiPageState extends State<NominalDonasiPage> {
             TextButton(
               child: Text('OK'),
               onPressed: () {
+                // Close the success dialog
                 Navigator.of(context).pop();
-                Navigator.of(context).pushAndRemoveUntil(
+                
+                // Pop all the way back to the donasi list page
+                Navigator.of(context).popUntil((route) => route.isFirst);
+                
+                // Push the status page with a custom route
+                Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => HomeDonatur(
-                      initialIndex: 1, // Donasi tab
-                      initialDonasiFilter: DonasiFilter.riwayat, // Show Riwayat
+                    builder: (context) => WillPopScope(
+                      onWillPop: () async {
+                        // When back is pressed, pop to donasi list
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                        return false; // Prevent default back behavior
+                      },
+                      child: DonasiStatusListPage(),
                     ),
                   ),
-                  (route) => false,
                 );
               },
             ),

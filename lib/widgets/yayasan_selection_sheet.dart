@@ -25,7 +25,6 @@ class _YayasanSelectionSheetState extends State<YayasanSelectionSheet> {
   String? _error;
   Position? _currentPosition;
   Yayasan? _selectedYayasan;
-  bool _showMap = false;
   final MapController _mapController = MapController();
 
   @override
@@ -205,7 +204,6 @@ class _YayasanSelectionSheetState extends State<YayasanSelectionSheet> {
     print('Selected yayasan: ${yayasan.name}');
     setState(() {
       _selectedYayasan = yayasan;
-      _showMap = true;
     });
   }
 
@@ -269,14 +267,14 @@ class _YayasanSelectionSheetState extends State<YayasanSelectionSheet> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                    IconButton(
+                  IconButton(
                     icon: Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
-                    ),
+                  ),
                 ],
               ),
             ),
-              Expanded(
+            Expanded(
               child: Container(
                 width: MediaQuery.of(context).size.width,
                 child: FlutterMap(
@@ -284,6 +282,19 @@ class _YayasanSelectionSheetState extends State<YayasanSelectionSheet> {
                   options: MapOptions(
                     initialCenter: _selectedYayasan!.position,
                     initialZoom: 15,
+                    onMapReady: () {
+                      if (_currentPosition != null) {
+                        // Calculate center point between user and yayasan
+                        final centerLat = (_currentPosition!.latitude + _selectedYayasan!.lat) / 2;
+                        final centerLon = (_currentPosition!.longitude + _selectedYayasan!.lon) / 2;
+                        
+                        // Calculate zoom level based on distance
+                        final distance = _selectedYayasan!.distance ?? 5.0;
+                        final zoom = 15.0 - (distance / 2).clamp(0.0, 5.0);
+
+                        _mapController.move(LatLng(centerLat, centerLon), zoom);
+                      }
+                    },
                   ),
                   children: [
                     TileLayer(

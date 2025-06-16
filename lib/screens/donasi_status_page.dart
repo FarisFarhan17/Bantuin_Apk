@@ -7,6 +7,7 @@ import '../services/firebase_service.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
+import 'dart:convert'; // Add this import for base64Decode
 
 class DonasiStatusPage extends StatefulWidget {
   final Donasi donasi;
@@ -216,6 +217,19 @@ class _DonasiStatusPageState extends State<DonasiStatusPage> {
     );
   }
 
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'proses':
+        return Colors.orange;
+      case 'selesai':
+        return Colors.green;
+      case 'konfirming':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -257,6 +271,21 @@ class _DonasiStatusPageState extends State<DonasiStatusPage> {
                               widget.yayasan.name,
                               style: TextStyle(
                                 fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: _getStatusColor(widget.donasi.status),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              widget.donasi.status,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -363,51 +392,80 @@ class _DonasiStatusPageState extends State<DonasiStatusPage> {
                         ),
                       ),
                       SizedBox(height: 12),
-                      if (_buktiImage != null) ...[
+                      if (widget.donasi.buktiImage != null && widget.donasi.buktiImage!.isNotEmpty) ...[
                         Container(
                           height: 200,
                           width: double.infinity,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
                             image: DecorationImage(
-                              image: FileImage(_buktiImage!),
-                              fit: BoxFit.cover,
+                              image: MemoryImage(base64Decode(widget.donasi.buktiImage!)),
+                              fit: BoxFit.contain,
                             ),
                           ),
                         ),
                         SizedBox(height: 12),
-                      ],
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: _isLoading ? null : _pickImage,
-                              icon: Icon(Icons.photo_library),
-                              label: Text(_buktiImage == null ? 'Pilih Bukti' : 'Ganti Bukti'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(vertical: 12),
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Text(
+                              'Mohon tunggu konfirmasi admin',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[600],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ] else ...[
+                        if (_buktiImage != null) ...[
+                          Container(
+                            height: 200,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              image: DecorationImage(
+                                image: FileImage(_buktiImage!),
+                                fit: BoxFit.contain,
                               ),
                             ),
                           ),
-                          if (_buktiImage != null) ...[
-                            SizedBox(width: 12),
+                          SizedBox(height: 12),
+                        ],
+                        Row(
+                          children: [
                             Expanded(
                               child: ElevatedButton.icon(
-                                onPressed: _isLoading ? null : _submitBukti,
-                                icon: Icon(Icons.upload),
-                                label: Text('Upload'),
+                                onPressed: _isLoading ? null : _pickImage,
+                                icon: Icon(Icons.photo_library),
+                                label: Text(_buktiImage == null ? 'Pilih Bukti' : 'Ganti Bukti'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green,
+                                  backgroundColor: Colors.blue,
                                   foregroundColor: Colors.white,
                                   padding: EdgeInsets.symmetric(vertical: 12),
                                 ),
                               ),
                             ),
+                            if (_buktiImage != null) ...[
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: _isLoading ? null : _submitBukti,
+                                  icon: Icon(Icons.upload),
+                                  label: Text('Upload'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(vertical: 12),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
-                      ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

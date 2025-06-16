@@ -15,6 +15,7 @@ class Donasi {
   final int sisaHari;
   final String status;
   final String? buktiImage;
+  final DateTime timestamp;
 
   Donasi({
     required this.id,
@@ -33,6 +34,7 @@ class Donasi {
     required this.sisaHari,
     required this.status,
     this.buktiImage,
+    required this.timestamp,
   });
 
   factory Donasi.fromMap(String id, Map<String, dynamic> data) {
@@ -53,6 +55,9 @@ class Donasi {
       sisaHari: data['sisa_hari'] ?? 0,
       status: data['status'] ?? 'Proses',
       buktiImage: data['bukti_image'],
+      timestamp: data['timestamp'] != null 
+          ? DateTime.fromMillisecondsSinceEpoch(data['timestamp'])
+          : DateTime.now(),
     );
   }
 
@@ -73,6 +78,7 @@ class Donasi {
       'sisa_hari': sisaHari,
       'status': status,
       'bukti_image': buktiImage,
+      'timestamp': timestamp.millisecondsSinceEpoch,
     };
   }
 }

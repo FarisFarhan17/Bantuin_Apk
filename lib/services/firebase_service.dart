@@ -126,6 +126,7 @@ class FirebaseService {
         lokasi: 'Ternate',
         sisaHari: 100,
         status: 'Proses',
+        timestamp: DateTime.now(),
       )];
     }
     return snapshot.docs.map((doc) => Donasi.fromMap(doc.id, doc.data())).toList();
@@ -147,12 +148,12 @@ class FirebaseService {
   Future<void> updateDonasiStatus({
     required String donasiId,
     required String status,
-    required String buktiBase64,
+    String? buktiBase64,
   }) async {
     try {
-      await _db.collection('donasi').doc(donasiId).update({
+      await _db.collection('user_donations_items').doc(donasiId).update({
         'status': status,
-        'bukti_image': buktiBase64,
+        if (buktiBase64 != null) 'bukti_image': buktiBase64,
         'updated_at': FieldValue.serverTimestamp(),
       });
     } catch (e) {
@@ -209,6 +210,9 @@ class FirebaseService {
           sisaHari: 0,
           status: data['status'] ?? 'Proses',
           buktiImage: data['bukti_image'],
+          timestamp: data['created_at'] != null 
+              ? (data['created_at'] as Timestamp).toDate()
+              : DateTime.now(),
         );
         
         print('Created Donasi object:');
