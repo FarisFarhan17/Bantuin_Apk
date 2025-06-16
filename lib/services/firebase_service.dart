@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/saldo.dart';
 import '../models/donasi.dart';
 import '../models/donation_history_entry.dart';
+import 'dart:io';
+import 'dart:convert';
 
 class FirebaseService {
   final _db = FirebaseFirestore.instance;
@@ -123,8 +125,116 @@ class FirebaseService {
         jumlahDonasi: 0,
         lokasi: 'Ternate',
         sisaHari: 100,
+        status: 'Proses',
       )];
     }
     return snapshot.docs.map((doc) => Donasi.fromMap(doc.id, doc.data())).toList();
+  }
+
+  Future<String> uploadBuktiDonasi(File buktiFile) async {
+    try {
+      // Read the file as bytes
+      final bytes = await buktiFile.readAsBytes();
+      // Convert to base64 string
+      final base64String = base64Encode(bytes);
+      return base64String;
+    } catch (e) {
+      print('Error processing bukti donasi: $e');
+      throw e;
+    }
+  }
+
+  Future<void> updateDonasiStatus({
+    required String donasiId,
+    required String status,
+    required String buktiBase64,
+  }) async {
+    try {
+      await _db.collection('donasi').doc(donasiId).update({
+        'status': status,
+        'bukti_image': buktiBase64,
+        'updated_at': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error updating donation status: $e');
+      throw e;
+    }
+  }
+
+  Future<List<Donasi>> getDonasiStatusList() async {
+    try {
+      // First, get all donations for the user without status filter
+      final allDonationsSnapshot = await _db
+          .collection('user_donations_items')
+          .where('user_id', isEqualTo: 'donatur_1')
+          .get();
+
+      print('Total donations found: ${allDonationsSnapshot.docs.length}');
+      
+      // Print each donation's data for debugging
+      for (var doc in allDonationsSnapshot.docs) {
+        print('Donation ID: ${doc.id}');
+        print('Data: ${doc.data()}');
+      }
+
+      // Now get the filtered donations
+      final itemDonationsSnapshot = await _db
+          .collection('user_donations_items')
+          .where('user_id', isEqualTo: 'donatur_1')
+          .where('status', whereIn: ['Proses', 'Konfirming'])
+          .get();
+
+      print('Filtered donations found: ${itemDonationsSnapshot.docs.length}');
+
+      // Convert item donations to Donasi objects
+      return itemDonationsSnapshot.docs.map((doc) {
+        final data = doc.data();
+        return Donasi(
+          id: doc.id,
+          judul: data['donasi_title'] ?? 'Donasi ${data['item_name']}',
+          yayasan: data['yayasan_name'] ?? 'Donasi Barang',
+          deskripsi: data['donasi_description'] ?? 'Jumlah: ${data['quantity']} ${data['item_name']}',
+          target: 0,
+          terkumpul: 0,
+          gambar: data['bukti_image'] ?? '',
+          barang: [],
+          cerita: '',
+          penggalang: '',
+          verifikasi: true,
+          jumlahDonasi: 0,
+          lokasi: '',
+          sisaHari: 0,
+          status: data['status'] ?? 'Proses',
+          buktiImage: data['bukti_image'],
+        );
+      }).toList();
+    } catch (e) {
+      print('Error getting donation status list: $e');
+      return [];
+    }
+  }
+
+  // Method to add item donation
+  Future<void> addItemDonation({
+    required String userId,
+    required String donasiId,
+    required String itemName,
+    required int quantity,
+    String? buktiBase64,
+    required String yayasanName,
+  }) async {
+    await _db.collection('user_donations_items').add({
+      'user_id': userId,
+      'donasi_id': donasiId,
+      'item_name': itemName,
+      'quantity': quantity,
+      'bukti_image': buktiBase64,
+      'status': 'Proses',
+      'created_at': FieldValue.serverTimestamp(),
+      'updated_at': FieldValue.serverTimestamp(),
+      'donasi_title': 'Donasi $itemName',
+      'donasi_description': 'Jumlah: $quantity $itemName',
+      'yayasan_name': yayasanName,
+    });
   }
 } 

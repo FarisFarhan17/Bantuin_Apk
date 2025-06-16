@@ -3,9 +3,11 @@ import 'package:intl/intl.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../models/donasi.dart';
+import '../models/yayasan.dart';
 import '../screens/nominal_donasi_page.dart';
 import '../services/firebase_service.dart';
 import '../widgets/yayasan_selection_sheet.dart';
+import '../screens/donasi_status_page.dart';
 
 class DonationOptionsSheet extends StatefulWidget {
   final Donasi donasi;
@@ -213,6 +215,72 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
       selectedDonationType = type;
       _currentStep = 1;
     });
+  }
+
+  void _handleYayasanSelected(Yayasan yayasan) async {
+    // Store the context before any async operations
+    final currentContext = context;
+    
+    // Show confirmation dialog
+    final shouldProceed = await showDialog<bool>(
+      context: currentContext,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Konfirmasi Donasi'),
+          content: Text('Apakah Anda yakin ingin melanjutkan donasi ke ${yayasan.name}?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Batal'),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              child: Text('Lanjutkan'),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldProceed == true && mounted) {
+      // Add each selected item to Firebase
+      for (var entry in itemSelected.entries) {
+        if (entry.value) {
+          await _firebaseService.addItemDonation(
+            userId: 'donatur_1',
+            donasiId: widget.donasi.id,
+            itemName: entry.key,
+            quantity: itemQuantities[entry.key] ?? 0,
+            yayasanName: yayasan.name,
+          );
+        }
+      }
+
+      if (mounted) {
+        // Navigate to status page
+        Navigator.push(
+          currentContext,
+          MaterialPageRoute(
+            builder: (context) => DonasiStatusPage(
+              donasi: widget.donasi,
+              yayasan: yayasan,
+              items: itemSelected.entries
+                  .where((entry) => entry.value)
+                  .map((entry) => {
+                        'name': entry.key,
+                        'quantity': itemQuantities[entry.key],
+                        'photo': itemPhotos[entry.key],
+                      })
+                  .toList(),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -850,20 +918,7 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
                     builder: (context) => YayasanSelectionSheet(
-                      onYayasanSelected: (yayasan) {
-                        Navigator.pop(context, {
-                          'items': itemSelected.entries
-                              .where((entry) => entry.value)
-                              .map((entry) => {
-                                    'name': entry.key,
-                                    'quantity': itemQuantities[entry.key],
-                                    'photo': itemPhotos[entry.key],
-                                  })
-                              .toList(),
-                          'delivery_type': selectedDeliveryType,
-                          'yayasan': yayasan,
-                        });
-                      },
+                      onYayasanSelected: _handleYayasanSelected,
                     ),
                   );
                 },

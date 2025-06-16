@@ -10,6 +10,7 @@ import '../../models/donasi.dart';
 import '../chat_page.dart'; // Import the new chat page
 import '../profile_page.dart'; // Import the new profile page
 import '../donasi_list_page.dart'; // Import the new donasi list page
+import '../donasi_status_list_page.dart'; // Import the new donasi status list page
 
 class HomeDonatur extends StatefulWidget {
   final int initialIndex;
@@ -108,7 +109,18 @@ class HomeDonaturState extends State<HomeDonatur> with AutomaticKeepAliveClientM
                   children: [
                     SizedBox(
                       height: 95,
-                      child: MenuGrid(onTap: (i) {}),
+                      child: MenuGrid(
+                        onTap: (i) {
+                          if (i == 1) { // Status Donasi button
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => DonasiStatusListPage(),
+                              ),
+                            );
+                          }
+                        },
+                      ),
                     ),
                     SizedBox(height: 14),
                     Divider(thickness: 0.7, color: Colors.grey[300]),

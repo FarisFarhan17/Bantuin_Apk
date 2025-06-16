@@ -5,41 +5,7 @@ import 'dart:convert';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:math' show min, max;
-
-class Yayasan {
-  final String name;
-  final String address;
-  final double lat;
-  final double lon;
-  final double? distance;
-  final double? rating;
-  final int? stars;
-
-  Yayasan({
-    required this.name,
-    required this.address,
-    required this.lat,
-    required this.lon,
-    this.distance,
-    this.rating,
-    this.stars,
-  });
-
-  LatLng get position => LatLng(lat, lon);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Yayasan &&
-          runtimeType == other.runtimeType &&
-          name == other.name &&
-          // Consider locations within ~10 meters as the same
-          (lat - other.lat).abs() < 0.0001 &&
-          (lon - other.lon).abs() < 0.0001;
-
-  @override
-  int get hashCode => name.hashCode ^ (lat * 10000).round() ^ (lon * 10000).round();
-}
+import '../models/yayasan.dart';
 
 class YayasanSelectionSheet extends StatefulWidget {
   final Function(Yayasan) onYayasanSelected;
@@ -265,75 +231,59 @@ class _YayasanSelectionSheetState extends State<YayasanSelectionSheet> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final bounds = _getBounds();
-    
-    return WillPopScope(
-      onWillPop: () async {
-        if (_showMap) {
-          setState(() {
-            _showMap = false;
-            _selectedYayasan = null;
-          });
-          return false;
-        }
-        return true;
-      },
-      child: Container(
+  void _showMapDialog() {
+    if (_selectedYayasan == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.9,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(Icons.location_on, color: Colors.white),
-                  SizedBox(width: 8),
                   Text(
-                    'Pilih Yayasan Terdekat',
+                    'Lokasi Yayasan',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
                     ),
                   ),
-                  if (_showMap)
-                    Spacer(),
-                  if (_showMap)
                     IconButton(
-                      icon: Icon(Icons.close, color: Colors.white),
-                      onPressed: () {
-                        setState(() {
-                          _showMap = false;
-                          _selectedYayasan = null;
-                        });
-                      },
+                    icon: Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
                     ),
                 ],
               ),
             ),
-            if (_showMap && _selectedYayasan != null)
               Expanded(
+              child: Container(
+                width: MediaQuery.of(context).size.width,
                 child: FlutterMap(
                   mapController: _mapController,
                   options: MapOptions(
-                    initialCenter: bounds?.center ?? _selectedYayasan!.position,
-                    initialZoom: bounds != null ? 13 : 15,
-                    onMapReady: () {
-                      if (bounds != null) {
-                        _mapController.move(bounds.center, 13);
-                      }
-                    },
+                    initialCenter: _selectedYayasan!.position,
+                    initialZoom: 15,
                   ),
                   children: [
                     TileLayer(
@@ -342,24 +292,10 @@ class _YayasanSelectionSheetState extends State<YayasanSelectionSheet> {
                     ),
                     MarkerLayer(
                       markers: [
-                        if (_currentPosition != null)
-                          Marker(
-                            point: LatLng(
-                              _currentPosition!.latitude,
-                              _currentPosition!.longitude,
-                            ),
-                            width: 40,
-                            height: 40,
-                            child: Icon(
-                              Icons.my_location,
-                              color: Colors.blue,
-                              size: 40,
-                            ),
-                          ),
                         Marker(
                           point: _selectedYayasan!.position,
-                          width: 40,
-                          height: 40,
+                          width: 80,
+                          height: 80,
                           child: Icon(
                             Icons.location_on,
                             color: Colors.red,
@@ -370,8 +306,62 @@ class _YayasanSelectionSheetState extends State<YayasanSelectionSheet> {
                     ),
                   ],
                 ),
-              )
-            else if (_isLoading)
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  widget.onYayasanSelected(_selectedYayasan!);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  minimumSize: Size(double.infinity, 45),
+                ),
+                child: Text('Konfirmasi'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.9,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.blue,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.location_on, color: Colors.white),
+                SizedBox(width: 8),
+                Text(
+                  'Pilih Yayasan Terdekat',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_isLoading)
               Expanded(
                 child: Center(
                   child: Column(
@@ -548,16 +538,18 @@ class _YayasanSelectionSheetState extends State<YayasanSelectionSheet> {
                                       icon: Icon(Icons.map, color: Colors.blue),
                                       tooltip: 'Lihat di Peta',
                                     ),
-                                    ElevatedButton.icon(
+                                  SizedBox(width: 8),
+                                  ElevatedButton(
                                       onPressed: () {
-                                        widget.onYayasanSelected(yayasan);
-                                        Navigator.pop(context);
+                                      _selectYayasan(yayasan);
+                                      _showMapDialog();
                                       },
-                                      icon: Icon(Icons.check, size: 18),
-                                      label: Text('Pilih'),
                                       style: ElevatedButton.styleFrom(
-                                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      backgroundColor: Colors.green,
+                                      foregroundColor: Colors.white,
+                                      minimumSize: Size(100, 45),
                                       ),
+                                    child: Text('Pilih'),
                                     ),
                                   ],
                                 ),
@@ -571,7 +563,6 @@ class _YayasanSelectionSheetState extends State<YayasanSelectionSheet> {
                 ),
               ),
           ],
-        ),
       ),
     );
   }

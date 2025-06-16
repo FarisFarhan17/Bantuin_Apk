@@ -13,6 +13,8 @@ class Donasi {
   final int jumlahDonasi;
   final String lokasi;
   final int sisaHari;
+  final String status;
+  final String? buktiImage;
 
   Donasi({
     required this.id,
@@ -29,6 +31,8 @@ class Donasi {
     required this.jumlahDonasi,
     required this.lokasi,
     required this.sisaHari,
+    required this.status,
+    this.buktiImage,
   });
 
   factory Donasi.fromMap(String id, Map<String, dynamic> data) {
@@ -47,6 +51,8 @@ class Donasi {
       jumlahDonasi: data['jumlah_donasi'] ?? 0,
       lokasi: data['lokasi'] ?? '',
       sisaHari: data['sisa_hari'] ?? 0,
+      status: data['status'] ?? 'Proses',
+      buktiImage: data['bukti_image'],
     );
   }
 
@@ -65,6 +71,8 @@ class Donasi {
       'jumlah_donasi': jumlahDonasi,
       'lokasi': lokasi,
       'sisa_hari': sisaHari,
+      'status': status,
+      'bukti_image': buktiImage,
     };
   }
 }
