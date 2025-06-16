@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import '../services/firebase_service.dart'; // Import FirebaseService
 import '../models/donasi.dart'; // Import Donasi model
 import 'donasi_status_list_page.dart';
+import 'donasi_list_page.dart';
+import 'home/home_donatur.dart';
 
 class NominalDonasiPage extends StatefulWidget {
   final int donationAmount;
@@ -71,19 +73,15 @@ class _NominalDonasiPageState extends State<NominalDonasiPage> {
                 // Close the success dialog
                 Navigator.of(context).pop();
                 
-                // Pop all the way back to the donasi list page
+                // Pop all the way back to the main page
                 Navigator.of(context).popUntil((route) => route.isFirst);
                 
-                // Push the status page with a custom route
-                Navigator.of(context).push(
+                // Replace the current page with HomeDonatur showing riwayat tab
+                Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                    builder: (context) => WillPopScope(
-                      onWillPop: () async {
-                        // When back is pressed, pop to donasi list
-                        Navigator.of(context).popUntil((route) => route.isFirst);
-                        return false; // Prevent default back behavior
-                      },
-                      child: DonasiStatusListPage(),
+                    builder: (context) => HomeDonatur(
+                      initialIndex: 1,
+                      initialDonasiFilter: DonasiFilter.riwayat,
                     ),
                   ),
                 );
@@ -127,7 +125,6 @@ class _NominalDonasiPageState extends State<NominalDonasiPage> {
         donasiId: widget.donasi.id,
         donasiTitle: widget.donasi.judul,
         amount: widget.donationAmount,
-        status: 'Pending',
         timestamp: DateTime.now(),
       );
 

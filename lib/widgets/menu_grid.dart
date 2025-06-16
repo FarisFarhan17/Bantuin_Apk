@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../screens/create_campaign_page.dart';
 
 class MenuGrid extends StatelessWidget {
   final void Function(int) onTap;
@@ -23,7 +24,18 @@ class MenuGrid extends StatelessWidget {
       itemCount: menu.length,
       itemBuilder: (context, i) {
         return GestureDetector(
-          onTap: () => onTap(i),
+          onTap: () {
+            if (i == 3) { // Informan icon
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CreateCampaignPage(),
+                ),
+              );
+            } else {
+              onTap(i);
+            }
+          },
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

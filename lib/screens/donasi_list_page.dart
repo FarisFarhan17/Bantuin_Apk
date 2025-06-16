@@ -27,20 +27,18 @@ class _DonasiListPageState extends State<DonasiListPage> {
   final NumberFormat formatter = NumberFormat.decimalPattern('id');
   List<Donasi> _donasiList = [];
   List<Donasi> _filteredDonasiList = [];
-  final TextEditingController _locationFilterController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   // Filter state variables
   String _selectedTimeFilter = 'Terbaru'; // Default time filter
-  String _selectedLocationFilter = 'Semua Provinsi'; // Default location filter
   final List<String> _timeFilterOptions = ['Terbaru', 'Terurgent'];
-  final List<String> _locationFilterOptions = ['Semua Provinsi', 'Jakarta', 'Jawa Barat', 'Jawa Tengah', 'Jawa Timur', 'Sumatra Utara', 'Sulawesi Selatan']; // Example provinces
 
   @override
   void initState() {
     super.initState();
     _currentFilter = widget.initialFilter;
     _loadData();
-    _locationFilterController.addListener(_onLocationFilterChanged);
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
@@ -55,7 +53,7 @@ class _DonasiListPageState extends State<DonasiListPage> {
 
   @override
   void dispose() {
-    _locationFilterController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -71,67 +69,45 @@ class _DonasiListPageState extends State<DonasiListPage> {
     });
   }
 
-  void _onLocationFilterChanged() {
-    // No need to call _filterDonations() here, as it's called in the FutureBuilder
+  void _onSearchChanged() {
+    _filterDonations();
   }
 
   void _filterDonations() {
-    String query = _locationFilterController.text.toLowerCase();
+    String query = _searchController.text.toLowerCase();
     List<Donasi> filteredBySearch = _donasiList.where((donasi) =>
-        donasi.lokasi.toLowerCase().contains(query)
+        donasi.judul.toLowerCase().contains(query) ||
+        donasi.deskripsi.toLowerCase().contains(query)
     ).toList();
 
-    List<Donasi> filteredByTimeAndLocation = filteredBySearch.where((donasi) {
-      // Apply location filter
-      if (_selectedLocationFilter != 'Semua Provinsi' && donasi.lokasi != _selectedLocationFilter) {
-        return false;
-      }
-
+    List<Donasi> filteredByTime = filteredBySearch.where((donasi) {
       // Apply time filter
-      // TODO: Implement Terurgent logic based on sisaHari or a dedicated deadline field
       if (_selectedTimeFilter == 'Terbaru') {
-        // Assuming donasiList is already sorted by timestamp (newest first) from Firebase
         return true;
       } else if (_selectedTimeFilter == 'Terurgent') {
-        // This requires a due date or sisaHari in the Donasi model
-        // For now, we'll just return true, actual urgent sorting will be implemented later
-        return true; // Placeholder for urgent logic
+        return true;
       }
-
-      return true; // Include if no filters exclude it
+      return true;
     }).toList();
 
     // Apply time filter sorting after filtering
     if (_selectedTimeFilter == 'Terbaru') {
-      // Assuming Firebase query handles this, but sorting locally just in case or if no timestamp field in model
-      // filteredByTimeAndLocation.sort((a, b) => b.timestamp.compareTo(a.timestamp)); // Requires timestamp field
-       // For now, assuming the list from firebase is already sorted newest first
+      filteredByTime.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     } else if (_selectedTimeFilter == 'Terurgent') {
-       // Requires a field to sort by urgency (e.g., sisaHari ascending)
-       filteredByTimeAndLocation.sort((a, b) => a.sisaHari.compareTo(b.sisaHari)); // Sort by sisaHari ascending
+      filteredByTime.sort((a, b) => a.sisaHari.compareTo(b.sisaHari));
     }
 
     setState(() {
-      _filteredDonasiList = filteredByTimeAndLocation;
+      _filteredDonasiList = filteredByTime;
     });
   }
 
   void _applyTimeFilter(String filter) {
     setState(() {
       _selectedTimeFilter = filter;
-      // No need to close menu here, drawer will be closed by Navigator.pop
     });
-    _filterDonations(); // Re-filter data
-    Navigator.pop(context); // Close the drawer after applying filter
-  }
-
-  void _applyLocationFilter(String filter) {
-    setState(() {
-      _selectedLocationFilter = filter;
-      // No need to close menu here, drawer will be closed by Navigator.pop
-    });
-    _filterDonations(); // Re-filter data
-    Navigator.pop(context); // Close the drawer after applying filter
+    _filterDonations();
+    Navigator.pop(context);
   }
 
   @override
@@ -159,22 +135,6 @@ class _DonasiListPageState extends State<DonasiListPage> {
                     },
                   )).toList(),
                 ),
-                SizedBox(height: 16),
-                Text('Filter by Lokasi', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
-                Wrap(
-                  spacing: 8.0,
-                  runSpacing: 4.0,
-                  children: _locationFilterOptions.map((filter) => FilterChip(
-                    label: Text(filter),
-                    selected: _selectedLocationFilter == filter,
-                    onSelected: (bool selected) {
-                      if (selected) {
-                        _applyLocationFilter(filter);
-                      }
-                    },
-                  )).toList(),
-                ),
               ],
             ),
           ),
@@ -194,29 +154,28 @@ class _DonasiListPageState extends State<DonasiListPage> {
                     children: [
                       Expanded(
                         child: TextField(
-                          controller: _locationFilterController,
+                          controller: _searchController,
                           decoration: InputDecoration(
-                            hintText: 'Cari berdasarkan lokasi...',
+                            hintText: 'Cari donasi...',
                             prefixIcon: Icon(Icons.search),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide.none, // Fixed linter error
+                              borderSide: BorderSide.none,
                             ),
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0), // Adjust vertical padding here
+                            contentPadding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
                           ),
-                          onChanged: (value) => _filterDonations(),
                         ),
                       ),
-                      SizedBox(width: 16), // Space between search and filter
+                      SizedBox(width: 16),
                       Builder(
                         builder: (context) => GestureDetector(
                           onTap: () => Scaffold.of(context).openEndDrawer(),
                           child: Container(
                             padding: EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.green, // Explicitly set the green color
+                              color: Colors.green,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(Icons.filter_list, color: Colors.white),
@@ -270,14 +229,8 @@ class _DonasiListPageState extends State<DonasiListPage> {
 
                       _donasiList = snapshot.data!;
                       // Apply filtering directly based on current state without calling setState
-                      String query = _locationFilterController.text.toLowerCase();
                       _filteredDonasiList = _donasiList.where((donasi) {
-                        // Apply location filter
-                        if (query.isNotEmpty && !donasi.lokasi.toLowerCase().contains(query)) {
-                          return false;
-                        }
                         // Apply time filter (Terurgent sorting is applied after filtering)
-                        // The 'Terbaru' filter doesn't exclude items, just affects sorting.
                         return true; // Include all items for now, sorting handled later.
                       }).toList();
 
@@ -288,16 +241,23 @@ class _DonasiListPageState extends State<DonasiListPage> {
 
                       return Container( // Wrap ListView.builder with Container
                         color: Colors.grey[100], // Consistent grey background here
-                        child: ListView.builder(
-                          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Adjust padding
-                          itemCount: _filteredDonasiList.length,
-                          itemBuilder: (context, index) {
-                            final donasi = _filteredDonasiList[index];
-                            return DonasiListPageCard(
-                              donasi: donasi,
-                              formatter: formatter,
-                            );
+                        child: RefreshIndicator(
+                          onRefresh: () async {
+                            setState(() {
+                              _loadData();
+                            });
                           },
+                          child: ListView.builder(
+                            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Adjust padding
+                            itemCount: _filteredDonasiList.length,
+                            itemBuilder: (context, index) {
+                              final donasi = _filteredDonasiList[index];
+                              return DonasiListPageCard(
+                                donasi: donasi,
+                                formatter: formatter,
+                              );
+                            },
+                          ),
                         ),
                       );
                     },
@@ -337,11 +297,6 @@ class _DonasiListPageState extends State<DonasiListPage> {
                                       Text(
                                         'Jumlah Donasi: Rp ${formatter.format(entry.amount)}',
                                         style: TextStyle(fontSize: 14),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        'Status: ${entry.status}', // Display status
-                                        style: TextStyle(fontSize: 14, color: entry.status == 'Pending' ? Colors.orange : Colors.green), // Style status text
                                       ),
                                       SizedBox(height: 4),
                                       Text(

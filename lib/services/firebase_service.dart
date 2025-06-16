@@ -39,7 +39,6 @@ class FirebaseService {
     required String donasiId,
     required String donasiTitle,
     required int amount,
-    required String status,
     required DateTime timestamp,
   }) async {
     await _db.collection('user_donations').add({
@@ -47,7 +46,6 @@ class FirebaseService {
       'donasiId': donasiId,
       'donasiTitle': donasiTitle,
       'amount': amount,
-      'status': status,
       'timestamp': timestamp.toIso8601String(), // Store timestamp as string
     });
   }

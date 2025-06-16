@@ -101,6 +101,10 @@ class _DonasiStatusListPageState extends State<DonasiStatusListPage> {
     }
   }
 
+  Future<void> _refreshData() async {
+    await _loadDonations();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Group donations by date
@@ -131,149 +135,152 @@ class _DonasiStatusListPageState extends State<DonasiStatusListPage> {
                     ),
                   ),
                 )
-              : ListView.builder(
-                  padding: EdgeInsets.all(16),
-                  itemCount: groupedDonations.length,
-                  itemBuilder: (context, index) {
-                    final dateGroup = groupedDonations.keys.elementAt(index);
-                    final donations = groupedDonations[dateGroup]!;
-                    
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: Text(
-                            dateGroup,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
+              : RefreshIndicator(
+                  onRefresh: _refreshData,
+                  child: ListView.builder(
+                    padding: EdgeInsets.all(16),
+                    itemCount: groupedDonations.length,
+                    itemBuilder: (context, index) {
+                      final dateGroup = groupedDonations.keys.elementAt(index);
+                      final donations = groupedDonations[dateGroup]!;
+                      
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: Text(
+                              dateGroup,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                              ),
                             ),
                           ),
-                        ),
-                        ...donations.map((donation) {
-                          // Extract lat/lon from deskripsi
-                          double lat = 0;
-                          double lon = 0;
-                          try {
-                            final latMatch = RegExp(r'lat:([-\d.]+)').firstMatch(donation.deskripsi);
-                            final lonMatch = RegExp(r'lon:([-\d.]+)').firstMatch(donation.deskripsi);
-                            
-                            if (latMatch != null && lonMatch != null) {
-                              lat = double.parse(latMatch.group(1)!);
-                              lon = double.parse(lonMatch.group(1)!);
+                          ...donations.map((donation) {
+                            // Extract lat/lon from deskripsi
+                            double lat = 0;
+                            double lon = 0;
+                            try {
+                              final latMatch = RegExp(r'lat:([-\d.]+)').firstMatch(donation.deskripsi);
+                              final lonMatch = RegExp(r'lon:([-\d.]+)').firstMatch(donation.deskripsi);
+                              
+                              if (latMatch != null && lonMatch != null) {
+                                lat = double.parse(latMatch.group(1)!);
+                                lon = double.parse(lonMatch.group(1)!);
+                              }
+                            } catch (e) {
+                              print('Error parsing coordinates: $e');
                             }
-                          } catch (e) {
-                            print('Error parsing coordinates: $e');
-                          }
-                          
-                          return Card(
-                            elevation: 2,
-                            margin: EdgeInsets.only(bottom: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => DonasiStatusPage(
-                                      donasi: donation,
-                                      yayasan: Yayasan(
-                                        name: donation.yayasan,
-                                        address: donation.lokasi,
-                                        lat: lat,
-                                        lon: lon,
-                                      ),
-                                      items: [{
-                                        'name': donation.judul.replaceAll('Donasi ', ''),
-                                        'quantity': int.tryParse(donation.deskripsi.split(' ')[1]) ?? 0,
-                                        'photo': donation.buktiImage != null ? File(donation.buktiImage!) : null,
-                                      }],
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            donation.judul,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
+                            
+                            return Card(
+                              elevation: 2,
+                              margin: EdgeInsets.only(bottom: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => DonasiStatusPage(
+                                        donasi: donation,
+                                        yayasan: Yayasan(
+                                          name: donation.yayasan,
+                                          address: donation.lokasi,
+                                          lat: lat,
+                                          lon: lon,
                                         ),
-                                        Container(
-                                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: _getStatusColor(donation.status),
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: Text(
-                                            donation.status,
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 8),
-                                    Text(
-                                      donation.yayasan,
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 14,
+                                        items: [{
+                                          'name': donation.judul.replaceAll('Donasi ', ''),
+                                          'quantity': int.tryParse(donation.deskripsi.split(' ')[1]) ?? 0,
+                                          'photo': donation.buktiImage != null ? File(donation.buktiImage!) : null,
+                                        }],
                                       ),
                                     ),
-                                    SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        Icon(Icons.access_time, size: 14, color: Colors.grey[500]),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          '${donation.timestamp.hour.toString().padLeft(2, '0')}:${donation.timestamp.minute.toString().padLeft(2, '0')}',
-                                          style: TextStyle(
-                                            color: Colors.grey[500],
-                                            fontSize: 12,
+                                  );
+                                },
+                                child: Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              donation.judul,
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                        if (_currentPosition != null) ...[
-                                          SizedBox(width: 16),
-                                          Icon(Icons.location_on, size: 14, color: Colors.blue),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            '${_calculateDistance(lat, lon).toStringAsFixed(1)} km',
-                                            style: TextStyle(
-                                              color: Colors.blue,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
+                                          Container(
+                                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: _getStatusColor(donation.status),
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: Text(
+                                              donation.status,
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
                                           ),
                                         ],
-                                      ],
-                                    ),
-                                  ],
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        donation.yayasan,
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.access_time, size: 14, color: Colors.grey[500]),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            '${donation.timestamp.hour.toString().padLeft(2, '0')}:${donation.timestamp.minute.toString().padLeft(2, '0')}',
+                                            style: TextStyle(
+                                              color: Colors.grey[500],
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          if (_currentPosition != null) ...[
+                                            SizedBox(width: 16),
+                                            Icon(Icons.location_on, size: 14, color: Colors.blue),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              '${_calculateDistance(lat, lon).toStringAsFixed(1)} km',
+                                              style: TextStyle(
+                                                color: Colors.blue,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        }).toList(),
-                      ],
-                    );
-                  },
+                            );
+                          }).toList(),
+                        ],
+                      );
+                    },
+                  ),
                 ),
     );
   }

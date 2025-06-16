@@ -74,91 +74,99 @@ class HomeDonaturState extends State<HomeDonatur> with AutomaticKeepAliveClientM
     );
   }
 
+  Future<void> _refreshData() async {
+    await _loadData();
+  }
+
   List<Widget> _buildWidgetOptions() {
     return <Widget>[
       // Beranda Page Content
-      SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(height: 32),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Header(showSettings: true),
-            ),
-            SizedBox(height: 12),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: CustomSearchBar(),
-            ),
-            SizedBox(height: 16),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: SaldoCard(saldo: saldo, formatter: NumberFormat.decimalPattern('id')),
-            ),
-            SizedBox(height: 18),
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      RefreshIndicator(
+        onRefresh: _refreshData,
+        child: SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              SizedBox(height: 32),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Header(showSettings: true),
               ),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(16, 32, 16, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 95,
-                      child: MenuGrid(
-                        onTap: (i) {
-                          if (i == 1) { // Status Donasi button
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => DonasiStatusListPage(),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                    SizedBox(height: 14),
-                    Divider(thickness: 0.7, color: Colors.grey[300]),
-                    SizedBox(height: 14),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Donasi Pilihan',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            // Animate to Donasi tab (index 1)
-                            _pageController.animateToPage(
-                              1,
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.ease,
-                            );
-                             // State will be updated by onPageChanged
+              SizedBox(height: 12),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: CustomSearchBar(),
+              ),
+              SizedBox(height: 16),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: SaldoCard(saldo: saldo, formatter: NumberFormat.decimalPattern('id')),
+              ),
+              SizedBox(height: 18),
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(16, 32, 16, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 95,
+                        child: MenuGrid(
+                          onTap: (i) {
+                            if (i == 1) { // Status Donasi button
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => DonasiStatusListPage(),
+                                ),
+                              );
+                            }
                           },
-                          child: Text(
-                            'Lihat semua >',
-                            style: TextStyle(fontSize: 14, color: Colors.green, fontWeight: FontWeight.bold),
-                          ),
                         ),
-                      ],
-                    ),
-                    ...donasiList.map((d) => DonasiCard(
-                          donasi: d,
-                          formatter: NumberFormat.decimalPattern('id'),
-                          showProgressPercentage: true,
-                        )),
-                  ],
+                      ),
+                      SizedBox(height: 14),
+                      Divider(thickness: 0.7, color: Colors.grey[300]),
+                      SizedBox(height: 14),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Donasi Pilihan',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              // Animate to Donasi tab (index 1)
+                              _pageController.animateToPage(
+                                1,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.ease,
+                              );
+                               // State will be updated by onPageChanged
+                            },
+                            child: Text(
+                              'Lihat semua >',
+                              style: TextStyle(fontSize: 14, color: Colors.green, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                      ...donasiList.map((d) => DonasiCard(
+                            donasi: d,
+                            formatter: NumberFormat.decimalPattern('id'),
+                            showProgressPercentage: true,
+                          )),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       // Donasi Page Content

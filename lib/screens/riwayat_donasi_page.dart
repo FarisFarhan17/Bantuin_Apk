@@ -21,6 +21,12 @@ class _RiwayatDonasiPageState extends State<RiwayatDonasiPage> {
     _donationHistoryFuture = _firebaseService.getDonationHistory('donatur_1'); // Fetch history for donatur_1
   }
 
+  Future<void> _refreshData() async {
+    setState(() {
+      _donationHistoryFuture = _firebaseService.getDonationHistory('donatur_1');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,43 +47,41 @@ class _RiwayatDonasiPageState extends State<RiwayatDonasiPage> {
             return Center(child: Text('Belum ada riwayat donasi.')); // No history message
           } else {
             final donationHistory = snapshot.data!;
-            return ListView.builder(
-              padding: const EdgeInsets.all(8.0),
-              itemCount: donationHistory.length,
-              itemBuilder: (context, index) {
-                final entry = donationHistory[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8.0),
-                  elevation: 2.0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          entry.donasiTitle,
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Jumlah Donasi: Rp ${formatter.format(entry.amount)}',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Status: ${entry.status}', // Display status
-                          style: TextStyle(fontSize: 14, color: entry.status == 'Pending' ? Colors.orange : Colors.green), // Style status text
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Tanggal: ${DateFormat('dd/MM/yyyy HH:mm').format(entry.timestamp)}', // Formatted timestamp
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                        ),
-                      ],
+            return RefreshIndicator(
+              onRefresh: _refreshData,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(8.0),
+                itemCount: donationHistory.length,
+                itemBuilder: (context, index) {
+                  final entry = donationHistory[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                    elevation: 2.0,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            entry.donasiTitle,
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Jumlah Donasi: Rp ${formatter.format(entry.amount)}',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Tanggal: ${DateFormat('dd/MM/yyyy HH:mm').format(entry.timestamp)}', // Formatted timestamp
+                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             );
           }
         },

@@ -4,7 +4,6 @@ class DonationHistoryEntry {
   final String donasiId;
   final String donasiTitle;
   final int amount;
-  final String status;
   final DateTime timestamp;
 
   DonationHistoryEntry({
@@ -13,7 +12,6 @@ class DonationHistoryEntry {
     required this.donasiId,
     required this.donasiTitle,
     required this.amount,
-    required this.status,
     required this.timestamp,
   });
 
@@ -24,7 +22,6 @@ class DonationHistoryEntry {
       donasiId: map['donasiId'] ?? '',
       donasiTitle: map['donasiTitle'] ?? '',
       amount: map['amount'] ?? 0,
-      status: map['status'] ?? '',
       timestamp: DateTime.parse(map['timestamp'] ?? DateTime.now().toIso8601String()),
     );
   }

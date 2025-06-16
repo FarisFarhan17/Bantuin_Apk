@@ -273,17 +273,14 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
       }
 
       if (mounted) {
-        print('Navigating to status page with yayasan:');
-        print('Name: ${yayasan.name}');
-        print('Address: ${yayasan.address}');
-        print('Lat: ${yayasan.lat}');
-        print('Lon: ${yayasan.lon}');
+        // First, close the current bottom sheet
+        Navigator.of(context).pop(); // Pops the bottom sheet
         
         // Navigate to status page
         Navigator.pushReplacement(
-          currentContext,
+          context, // Use current context for navigation after pop
           MaterialPageRoute(
-            builder: (context) => DonasiStatusListPage(),
+            builder: (context) => const DonasiStatusListPage(),
           ),
         );
       }
@@ -907,71 +904,35 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
           ),
         ),
         SizedBox(height: 24),
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: selectedDeliveryType == 'drop_off' ? Colors.green : Colors.grey[300],
-                  foregroundColor: selectedDeliveryType == 'drop_off' ? Colors.white : Colors.black87,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                ),
-                onPressed: () {
-                  setState(() {
-                    selectedDeliveryType = 'drop_off';
-                  });
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) => YayasanSelectionSheet(
-                      onYayasanSelected: _handleYayasanSelected,
-                    ),
-                  );
-                },
-                child: Column(
-                  children: [
-                    Icon(Icons.delivery_dining, size: 32),
-                    SizedBox(height: 8),
-                    Text('Drop Off'),
-                  ],
-                ),
-              ),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: 16),
             ),
-            SizedBox(width: 16),
-            Expanded(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: selectedDeliveryType == 'pick_up' ? Colors.green : Colors.grey[300],
-                  foregroundColor: selectedDeliveryType == 'pick_up' ? Colors.white : Colors.black87,
-                  padding: EdgeInsets.symmetric(vertical: 16),
+            onPressed: () {
+              setState(() {
+                selectedDeliveryType = 'drop_off';
+              });
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => YayasanSelectionSheet(
+                  onYayasanSelected: _handleYayasanSelected,
                 ),
-                onPressed: () {
-                  setState(() {
-                    selectedDeliveryType = 'pick_up';
-                  });
-                  Navigator.pop(context, {
-                    'items': itemSelected.entries
-                        .where((entry) => entry.value)
-                        .map((entry) => {
-                              'name': entry.key,
-                              'quantity': itemQuantities[entry.key],
-                              'photo': itemPhotos[entry.key],
-                            })
-                        .toList(),
-                    'delivery_type': selectedDeliveryType,
-                  });
-                },
-                child: Column(
-                  children: [
-                    Icon(Icons.local_shipping, size: 32),
-                    SizedBox(height: 8),
-                    Text('Pick Up'),
-                  ],
-                ),
-              ),
+              );
+            },
+            child: Column(
+              children: [
+                Icon(Icons.delivery_dining, size: 32),
+                SizedBox(height: 8),
+                Text('Drop Off'),
+              ],
             ),
-          ],
+          ),
         ),
       ],
     );
