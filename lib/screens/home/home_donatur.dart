@@ -8,9 +8,10 @@ import '../../widgets/donasi_card.dart';
 import '../../services/firebase_service.dart';
 import '../../models/donasi.dart';
 import '../chat_page.dart'; // Import the new chat page
-import '../profile_page.dart'; // Import the new profile page
+// import '../profile_page.dart'; // Import the new profile page
 import '../donasi_list_page.dart'; // Import the new donasi list page
 import '../donasi_status_list_page.dart'; // Import the new donasi status list page
+import '../admin_login_page.dart'; // Import the new AdminLoginPage
 
 class HomeDonatur extends StatefulWidget {
   final int initialIndex;
@@ -174,7 +175,7 @@ class HomeDonaturState extends State<HomeDonatur> with AutomaticKeepAliveClientM
       // Chat Page Content
       ChatPage(),
       // Profile Page Content
-      ProfilePage(),
+      AdminLoginPage(),
     ];
   }
 
@@ -252,7 +253,7 @@ class HomeDonaturState extends State<HomeDonatur> with AutomaticKeepAliveClientM
               label: 'Beranda',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.volunteer_activism),
+              icon: Icon(Icons.handshake),
               label: 'Donasi',
             ),
             BottomNavigationBarItem(
@@ -260,8 +261,8 @@ class HomeDonaturState extends State<HomeDonatur> with AutomaticKeepAliveClientM
               label: 'Chat',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profil',
+              icon: Icon(Icons.admin_panel_settings),
+              label: 'Admin',
             ),
           ],
         ),

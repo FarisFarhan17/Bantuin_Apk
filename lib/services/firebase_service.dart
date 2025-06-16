@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/saldo.dart';
 import '../models/donasi.dart';
 import '../models/donation_history_entry.dart';
+import '../models/user_admin.dart';
 import 'dart:io';
 import 'dart:convert';
 
@@ -267,5 +268,22 @@ class FirebaseService {
     print(donationData);
 
     await _db.collection('user_donations_items').add(donationData);
+  }
+
+  Future<void> addAdminUser(UserAdmin adminUser) async {
+    await _db.collection('admin_users').add(adminUser.toMap());
+  }
+
+  Future<UserAdmin?> getAdminUser(String email) async {
+    final snapshot = await _db
+        .collection('admin_users')
+        .where('email', isEqualTo: email)
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      return UserAdmin.fromMap(snapshot.docs.first.id, snapshot.docs.first.data());
+    }
+    return null;
   }
 } 
