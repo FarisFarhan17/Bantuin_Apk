@@ -10,6 +10,7 @@ class Donasi {
   final String cerita;
   final String penggalang;
   final bool verifikasi;
+  final bool adminVerified;
   final int jumlahDonasi;
   final String lokasi;
   final int sisaHari;
@@ -29,6 +30,7 @@ class Donasi {
     required this.cerita,
     required this.penggalang,
     required this.verifikasi,
+    required this.adminVerified,
     required this.jumlahDonasi,
     required this.lokasi,
     required this.sisaHari,
@@ -50,6 +52,7 @@ class Donasi {
       cerita: data['cerita'] ?? '',
       penggalang: data['penggalang'] ?? '',
       verifikasi: data['verifikasi'] ?? false,
+      adminVerified: data['admin_verifikasi'] ?? false,
       jumlahDonasi: data['jumlah_donasi'] ?? 0,
       lokasi: data['lokasi'] ?? '',
       sisaHari: data['sisa_hari'] ?? 0,
@@ -73,6 +76,7 @@ class Donasi {
       'cerita': cerita,
       'penggalang': penggalang,
       'verifikasi': verifikasi,
+      'admin_verifikasi': adminVerified,
       'jumlah_donasi': jumlahDonasi,
       'lokasi': lokasi,
       'sisa_hari': sisaHari,

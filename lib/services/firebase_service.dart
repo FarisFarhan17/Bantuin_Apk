@@ -82,8 +82,11 @@ class FirebaseService {
   }
 
   Future<List<Donasi>> getDonasiList() async {
+    // This method should retrieve ALL campaigns, regardless of admin verification status,
+    // so the admin can see pending ones.
     final snapshot = await _db.collection('donasi').get();
     if (snapshot.docs.isEmpty) {
+      // This block for initial dummy data
       await _db.collection('donasi').doc('donasi_1').set({
         'judul': 'Bantu Korban Banjir Bandang Ternate',
         'yayasan': 'Simpul Setara',
@@ -100,9 +103,12 @@ class FirebaseService {
         'cerita': 'Kepala Pusat Data, Informasi, dan Komunikasi Kebencanaan Badan Nasional Penanggulangan Bencana (BNPB) Abdul Muhari, dalam keterangan tertulisnya, menuturkan bencana banjir bandang ternate, ini bermula dari hujan dengan intensitas tinggi yang mengguyur wilayah Ternate, Minggu (25/8) pukul 03.30 WIT.',
         'penggalang': 'Simpul Setara',
         'verifikasi': true,
+        'admin_verifikasi': false, // Set to false for pending admin verification
         'jumlah_donasi': 0,
         'lokasi': 'Ternate',
         'sisa_hari': 100,
+        'status': 'Proses', // Set status to Proses for dummy data
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
       });
       return [Donasi(
         id: 'donasi_1',
@@ -121,6 +127,7 @@ class FirebaseService {
         cerita: 'Kepala Pusat Data, Informasi, dan Komunikasi Kebencanaan Badan Nasional Penanggulangan Bencana (BNPB) Abdul Muhari, dalam keterangan tertulisnya, menuturkan bencana banjir bandang ternate, ini bermula dari hujan dengan intensitas tinggi yang mengguyur wilayah Ternate, Minggu (25/8) pukul 03.30 WIT.',
         penggalang: 'Simpul Setara',
         verifikasi: true,
+        adminVerified: false, // Set to false for pending admin verification
         jumlahDonasi: 0,
         lokasi: 'Ternate',
         sisaHari: 100,
@@ -209,6 +216,7 @@ class FirebaseService {
           sisaHari: 0,
           status: data['status'] ?? 'Proses',
           buktiImage: data['bukti_image'],
+          adminVerified: data['admin_verifikasi'] ?? false,
           timestamp: data['created_at'] != null 
               ? (data['created_at'] as Timestamp).toDate()
               : DateTime.now(),
@@ -285,5 +293,22 @@ class FirebaseService {
       return UserAdmin.fromMap(snapshot.docs.first.id, snapshot.docs.first.data());
     }
     return null;
+  }
+
+  Future<void> updateDonasiCampaignStatus({
+    required String donasiId,
+    required bool verifikasi,
+    required String status,
+  }) async {
+    try {
+      await _db.collection('donasi').doc(donasiId).update({
+        'admin_verifikasi': verifikasi,
+        'status': status,
+        'updated_at': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error updating campaign verification status: $e');
+      throw e;
+    }
   }
 } 

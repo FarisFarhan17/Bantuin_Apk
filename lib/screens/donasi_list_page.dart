@@ -228,11 +228,8 @@ class _DonasiListPageState extends State<DonasiListPage> {
                       }
 
                       _donasiList = snapshot.data!;
-                      // Apply filtering directly based on current state without calling setState
-                      _filteredDonasiList = _donasiList.where((donasi) {
-                        // Apply time filter (Terurgent sorting is applied after filtering)
-                        return true; // Include all items for now, sorting handled later.
-                      }).toList();
+                      // Apply filtering to show only admin-verified campaigns for public view
+                      _filteredDonasiList = _donasiList.where((donasi) => donasi.adminVerified == true).toList();
 
                       // Apply time filter sorting after filtering
                       if (_selectedTimeFilter == 'Terurgent') {

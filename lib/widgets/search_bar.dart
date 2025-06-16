@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class CustomSearchBar extends StatelessWidget {
-  const CustomSearchBar({super.key});
+  final TextEditingController? controller;
+  const CustomSearchBar({super.key, this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -9,6 +10,7 @@ class CustomSearchBar extends StatelessWidget {
       elevation: 2,
       borderRadius: BorderRadius.circular(16),
       child: TextField(
+        controller: controller,
         decoration: InputDecoration(
           hintText: 'Cari yang ingin kamu bantu',
           prefixIcon: Icon(Icons.search),

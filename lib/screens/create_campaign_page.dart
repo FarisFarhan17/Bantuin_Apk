@@ -130,6 +130,7 @@ class _CreateCampaignPageState extends State<CreateCampaignPage> {
         'cerita': _ceritaController.text,
         'penggalang': 'Informan',
         'verifikasi': false,
+        'admin_verifikasi': false,
         'jumlah_donasi': 0,
         'lokasi': _lokasiController.text,
         'sisa_hari': int.parse(_sisaHariController.text),

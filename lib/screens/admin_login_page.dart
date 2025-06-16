@@ -64,7 +64,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
           // Navigate to admin dashboard
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => AdminDashboardPage()), // Navigate to AdminDashboardPage
+            MaterialPageRoute(builder: (context) => AdminDashboard()), // Navigate to AdminDashboard
           );
         }
       } catch (e) {
