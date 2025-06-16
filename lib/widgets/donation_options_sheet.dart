@@ -218,6 +218,12 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
   }
 
   void _handleYayasanSelected(Yayasan yayasan) async {
+    print('Yayasan selected:');
+    print('Name: ${yayasan.name}');
+    print('Address: ${yayasan.address}');
+    print('Lat: ${yayasan.lat}');
+    print('Lon: ${yayasan.lon}');
+    
     // Store the context before any async operations
     final currentContext = context;
     
@@ -247,20 +253,32 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
     );
 
     if (shouldProceed == true && mounted) {
+      print('Proceeding with donation to yayasan: ${yayasan.name}');
+      
       // Add each selected item to Firebase
       for (var entry in itemSelected.entries) {
         if (entry.value) {
+          print('Adding donation for item: ${entry.key}');
           await _firebaseService.addItemDonation(
             userId: 'donatur_1',
             donasiId: widget.donasi.id,
             itemName: entry.key,
             quantity: itemQuantities[entry.key] ?? 0,
             yayasanName: yayasan.name,
+            yayasanAddress: yayasan.address,
+            yayasanLat: yayasan.lat,
+            yayasanLon: yayasan.lon,
           );
         }
       }
 
       if (mounted) {
+        print('Navigating to status page with yayasan:');
+        print('Name: ${yayasan.name}');
+        print('Address: ${yayasan.address}');
+        print('Lat: ${yayasan.lat}');
+        print('Lon: ${yayasan.lon}');
+        
         // Navigate to status page
         Navigator.push(
           currentContext,

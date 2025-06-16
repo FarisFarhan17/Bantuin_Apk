@@ -6,6 +6,7 @@ import '../models/yayasan.dart';
 import '../services/firebase_service.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:geolocator/geolocator.dart';
 
 class DonasiStatusPage extends StatefulWidget {
   final Donasi donasi;
@@ -27,6 +28,50 @@ class _DonasiStatusPageState extends State<DonasiStatusPage> {
   final FirebaseService _firebaseService = FirebaseService();
   File? _buktiImage;
   bool _isLoading = false;
+  Position? _currentPosition;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) return;
+      }
+
+      if (permission == LocationPermission.deniedForever) return;
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 10),
+      );
+
+      setState(() {
+        _currentPosition = position;
+      });
+    } catch (e) {
+      print('Error getting location: $e');
+    }
+  }
+
+  double _calculateDistance(double lat, double lon) {
+    if (_currentPosition == null) return 0;
+    
+    return Geolocator.distanceBetween(
+      _currentPosition!.latitude,
+      _currentPosition!.longitude,
+      lat,
+      lon,
+    ) / 1000; // Convert to kilometers
+  }
 
   Future<void> _pickImage() async {
     try {
@@ -240,7 +285,7 @@ class _DonasiStatusPageState extends State<DonasiStatusPage> {
                           Icon(Icons.directions_walk, color: Colors.blue),
                           SizedBox(width: 8),
                           Text(
-                            'Jarak: ${widget.yayasan.distance?.toStringAsFixed(1)} km',
+                            'Jarak: ${_calculateDistance(widget.yayasan.lat, widget.yayasan.lon).toStringAsFixed(1)} km',
                             style: TextStyle(
                               color: Colors.blue,
                               fontWeight: FontWeight.bold,

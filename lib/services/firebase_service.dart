@@ -174,7 +174,7 @@ class FirebaseService {
       // Print each donation's data for debugging
       for (var doc in allDonationsSnapshot.docs) {
         print('Donation ID: ${doc.id}');
-        print('Data: ${doc.data()}');
+        print('Raw Data: ${doc.data()}');
       }
 
       // Now get the filtered donations
@@ -187,13 +187,16 @@ class FirebaseService {
       print('Filtered donations found: ${itemDonationsSnapshot.docs.length}');
 
       // Convert item donations to Donasi objects
-      return itemDonationsSnapshot.docs.map((doc) {
+      final donations = itemDonationsSnapshot.docs.map((doc) {
         final data = doc.data();
-        return Donasi(
+        print('Processing donation data:');
+        print(data);
+        
+        final donasi = Donasi(
           id: doc.id,
           judul: data['donasi_title'] ?? 'Donasi ${data['item_name']}',
           yayasan: data['yayasan_name'] ?? 'Donasi Barang',
-          deskripsi: data['donasi_description'] ?? 'Jumlah: ${data['quantity']} ${data['item_name']}',
+          deskripsi: 'Jumlah: ${data['quantity']} ${data['item_name']} (lat:${data['yayasan_lat']},lon:${data['yayasan_lon']})',
           target: 0,
           terkumpul: 0,
           gambar: data['bukti_image'] ?? '',
@@ -202,12 +205,21 @@ class FirebaseService {
           penggalang: '',
           verifikasi: true,
           jumlahDonasi: 0,
-          lokasi: '',
+          lokasi: data['yayasan_address'] ?? '',
           sisaHari: 0,
           status: data['status'] ?? 'Proses',
           buktiImage: data['bukti_image'],
         );
+        
+        print('Created Donasi object:');
+        print('Yayasan: ${donasi.yayasan}');
+        print('Lokasi: ${donasi.lokasi}');
+        print('Deskripsi: ${donasi.deskripsi}');
+        
+        return donasi;
       }).toList();
+
+      return donations;
     } catch (e) {
       print('Error getting donation status list: $e');
       return [];
@@ -222,8 +234,17 @@ class FirebaseService {
     required int quantity,
     String? buktiBase64,
     required String yayasanName,
+    required String yayasanAddress,
+    required double yayasanLat,
+    required double yayasanLon,
   }) async {
-    await _db.collection('user_donations_items').add({
+    print('Adding item donation with yayasan data:');
+    print('Name: $yayasanName');
+    print('Address: $yayasanAddress');
+    print('Lat: $yayasanLat');
+    print('Lon: $yayasanLon');
+
+    final donationData = {
       'user_id': userId,
       'donasi_id': donasiId,
       'item_name': itemName,
@@ -235,6 +256,14 @@ class FirebaseService {
       'donasi_title': 'Donasi $itemName',
       'donasi_description': 'Jumlah: $quantity $itemName',
       'yayasan_name': yayasanName,
-    });
+      'yayasan_address': yayasanAddress,
+      'yayasan_lat': yayasanLat,
+      'yayasan_lon': yayasanLon,
+    };
+
+    print('Donation data to be stored:');
+    print(donationData);
+
+    await _db.collection('user_donations_items').add(donationData);
   }
 } 
