@@ -185,7 +185,7 @@ class HomeDonaturState extends State<HomeDonatur> with AutomaticKeepAliveClientM
     final d = await service.getDonasiList();
     setState(() {
       saldo = s.total;
-      donasiList = d;
+      donasiList = d.where((donasi) => donasi.adminVerified).toList();
       loading = false;
     });
   }
