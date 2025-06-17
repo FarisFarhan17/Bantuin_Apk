@@ -3,8 +3,57 @@ import '../models/saldo.dart';
 import '../models/donasi.dart';
 import '../models/donation_history_entry.dart';
 import '../models/user_admin.dart';
+import '../models/item_donation_entry.dart';
 import 'dart:io';
 import 'dart:convert';
+
+// New model for item donations for verification
+// class ItemDonationEntry {
+//   final String id;
+//   final String donasiId;
+//   final String userId;
+//   final String itemName;
+//   final int quantity;
+//   final String? buktiBase64;
+//   final String yayasanName;
+//   final String yayasanAddress;
+//   final double yayasanLat;
+//   final double yayasanLon;
+//   final String status;
+//   final DateTime createdAt;
+
+//   ItemDonationEntry({
+//     required this.id,
+//     required this.donasiId,
+//     required this.userId,
+//     required this.itemName,
+//     required this.quantity,
+//     this.buktiBase64,
+//     required this.yayasanName,
+//     required this.yayasanAddress,
+//     required this.yayasanLat,
+//     required this.yayasanLon,
+//     required this.status,
+//     required this.createdAt,
+//   });
+
+//   factory ItemDonationEntry.fromMap(String id, Map<String, dynamic> data) {
+//     return ItemDonationEntry(
+//       id: id,
+//       donasiId: data['donasi_id'] ?? '',
+//       userId: data['user_id'] ?? '',
+//       itemName: data['item_name'] ?? '',
+//       quantity: data['quantity'] ?? 0,
+//       buktiBase64: data['bukti_image'],
+//       yayasanName: data['yayasan_name'] ?? '',
+//       yayasanAddress: data['yayasan_address'] ?? '',
+//       yayasanLat: (data['yayasan_lat'] ?? 0.0).toDouble(),
+//       yayasanLon: (data['yayasan_lon'] ?? 0.0).toDouble(),
+//       status: data['status'] ?? 'Proses',
+//       createdAt: (data['created_at'] as Timestamp).toDate(),
+//     );
+//   }
+// }
 
 class FirebaseService {
   final _db = FirebaseFirestore.instance;
@@ -16,6 +65,36 @@ class FirebaseService {
       return Saldo(id: 'donatur_1', total: 100000);
     }
     return Saldo.fromMap(doc.id, doc.data()!);
+  }
+
+  // Method to get item donations with 'Konfirming' status
+  Future<List<ItemDonationEntry>> getKonfirmingItemDonations() async {
+    try {
+      final snapshot = await _db
+          .collection('user_donations_items')
+          .where('status', isEqualTo: 'Konfirming')
+          .get();
+      return snapshot.docs.map((doc) => ItemDonationEntry.fromMap(doc.id, doc.data())).toList();
+    } catch (e) {
+      print('Error getting konfirming item donations: $e');
+      return [];
+    }
+  }
+
+  // New method to update item donation status
+  Future<void> updateItemDonationStatus({
+    required String itemDonationId,
+    required String status,
+  }) async {
+    try {
+      await _db.collection('user_donations_items').doc(itemDonationId).update({
+        'status': status,
+        'updated_at': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error updating item donation status: $e');
+      throw e;
+    }
   }
 
   // New method to deduct saldo
@@ -67,6 +146,47 @@ class FirebaseService {
       transaction.update(donasiRef, {
         'terkumpul': currentTerkumpul + amount,
         'jumlah_donasi': currentJumlahDonasi + 1,
+      });
+    });
+  }
+
+  // New method to update collected amount for a specific item within a donasi
+  Future<void> updateItemDonasiCollectedAmount({
+    required String donasiId,
+    required String itemName,
+    required int quantity,
+  }) async {
+    final donasiRef = _db.collection('donasi').doc(donasiId);
+    await _db.runTransaction((transaction) async {
+      final snapshot = await transaction.get(donasiRef);
+      if (!snapshot.exists) {
+        throw Exception("Donasi document does not exist!");
+      }
+
+      final data = snapshot.data()!;
+      List<dynamic> barangList = data['barang'] ?? [];
+      
+      // Find and update the specific item
+      List<Map<String, dynamic>> updatedBarangList = [];
+      bool itemFound = false;
+      for (var item in barangList) {
+        if (item['nama'] == itemName) {
+          updatedBarangList.add({
+            ...item,
+            'terkumpul': (item['terkumpul'] ?? 0) + quantity,
+          });
+          itemFound = true;
+        } else {
+          updatedBarangList.add(item);
+        }
+      }
+
+      if (!itemFound) {
+        print('Warning: Item $itemName not found in donasi $donasiId');
+      }
+
+      transaction.update(donasiRef, {
+        'barang': updatedBarangList,
       });
     });
   }
@@ -249,33 +369,24 @@ class FirebaseService {
     required double yayasanLat,
     required double yayasanLon,
   }) async {
-    print('Adding item donation with yayasan data:');
-    print('Name: $yayasanName');
-    print('Address: $yayasanAddress');
-    print('Lat: $yayasanLat');
-    print('Lon: $yayasanLon');
-
-    final donationData = {
-      'user_id': userId,
-      'donasi_id': donasiId,
-      'item_name': itemName,
-      'quantity': quantity,
-      'bukti_image': buktiBase64,
-      'status': 'Proses',
-      'created_at': FieldValue.serverTimestamp(),
-      'updated_at': FieldValue.serverTimestamp(),
-      'donasi_title': 'Donasi $itemName',
-      'donasi_description': 'Jumlah: $quantity $itemName',
-      'yayasan_name': yayasanName,
-      'yayasan_address': yayasanAddress,
-      'yayasan_lat': yayasanLat,
-      'yayasan_lon': yayasanLon,
-    };
-
-    print('Donation data to be stored:');
-    print(donationData);
-
-    await _db.collection('user_donations_items').add(donationData);
+    try {
+      await _db.collection('user_donations_items').add({
+        'user_id': userId,
+        'donasi_id': donasiId,
+        'item_name': itemName,
+        'quantity': quantity,
+        'bukti_image': buktiBase64,
+        'yayasan_name': yayasanName,
+        'yayasan_address': yayasanAddress,
+        'yayasan_lat': yayasanLat,
+        'yayasan_lon': yayasanLon,
+        'status': 'Konfirming', // Initial status for item donations awaiting verification
+        'created_at': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error adding item donation: $e');
+      throw e;
+    }
   }
 
   Future<void> addAdminUser(UserAdmin adminUser) async {
@@ -297,12 +408,11 @@ class FirebaseService {
 
   Future<void> updateDonasiCampaignStatus({
     required String donasiId,
-    required bool verifikasi,
     required String status,
   }) async {
     try {
       await _db.collection('donasi').doc(donasiId).update({
-        'admin_verifikasi': verifikasi,
+        'admin_verifikasi': status == 'Terverifikasi',
         'status': status,
         'updated_at': FieldValue.serverTimestamp(),
       });

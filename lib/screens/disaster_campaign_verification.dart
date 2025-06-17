@@ -74,7 +74,6 @@ class _DisasterCampaignVerificationState extends State<DisasterCampaignVerificat
     try {
       await _firebaseService.updateDonasiCampaignStatus(
         donasiId: donasiId,
-        verifikasi: isVerified,
         status: isVerified ? 'Terverifikasi' : 'Ditolak',
       );
       _fetchCampaigns(); // Refresh the list after update

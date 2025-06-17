@@ -147,6 +147,7 @@ class _AdminDashboardState extends State<AdminDashboard>
                               crossAxisCount: 2,
                               crossAxisSpacing: 16.0,
                               mainAxisSpacing: 16.0,
+                              childAspectRatio: 0.9,
                               children: [
                                 _buildMenuCard(
                                   context,
@@ -196,14 +197,17 @@ class _AdminDashboardState extends State<AdminDashboard>
                                   Icons.inventory_2,
                                   Colors.orange,
                                   'Verifikasi bukti donasi barang',
-                                  () {
-                                    Navigator.push(
+                                  () async {
+                                    final result = await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
                                             const DonationVerification(),
                                       ),
                                     );
+                                    if (result == true) {
+                                      _loadRecentCampaigns();
+                                    }
                                   },
                                 ),
                               ],
@@ -548,26 +552,30 @@ class _AdminDashboardState extends State<AdminDashboard>
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(8.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withOpacity(0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                SizedBox(
+                  height: 60,
+                  width: 60,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(icon, size: 32, color: color),
                   ),
-                  child: Icon(icon, size: 32, color: color),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Text(
                   title,
                   style: const TextStyle(
@@ -582,6 +590,8 @@ class _AdminDashboardState extends State<AdminDashboard>
                   subtitle,
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
