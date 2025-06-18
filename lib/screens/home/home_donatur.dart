@@ -42,6 +42,7 @@ class HomeDonaturState extends State<HomeDonatur> with AutomaticKeepAliveClientM
   late DonasiFilter _currentDonasiFilter;
 
   late PageController _pageController;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   bool get wantKeepAlive => true;
@@ -79,7 +80,7 @@ class HomeDonaturState extends State<HomeDonatur> with AutomaticKeepAliveClientM
     await _loadData();
   }
 
-  List<Widget> _buildWidgetOptions() {
+  List<Widget> _buildWidgetOptions(String username) {
     return <Widget>[
       // Beranda Page Content
       RefreshIndicator(
@@ -102,7 +103,7 @@ class HomeDonaturState extends State<HomeDonatur> with AutomaticKeepAliveClientM
                 SizedBox(height: 32),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Header(showSettings: false),
+                  child: Header(showSettings: false, onProfileTap: () => _scaffoldKey.currentState?.openEndDrawer(), username: username),
                 ),
                 SizedBox(height: 12),
                 SizedBox(height: 16),
@@ -201,6 +202,7 @@ class HomeDonaturState extends State<HomeDonatur> with AutomaticKeepAliveClientM
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final username = FirebaseService.currentUser?.username ?? 'Pengguna';
     return WillPopScope(
       onWillPop: () async {
         if (_selectedIndex == 0) {
@@ -215,27 +217,20 @@ class HomeDonaturState extends State<HomeDonatur> with AutomaticKeepAliveClientM
         }
       },
       child: Scaffold(
+        key: _scaffoldKey,
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
           toolbarHeight: 0,
         ),
+        endDrawer: _ProfileDrawer(username: username),
         body: loading
             ? Center(child: CircularProgressIndicator())
             : Container(
                 width: double.infinity,
                 height: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Color.fromARGB(255, 209, 239, 227),
-                      Color.fromARGB(255, 235, 255, 244),
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
+                color: Color(0xFFE6F1FB),
                 child: PageView(
                   controller: _pageController,
                   onPageChanged: (index) {
@@ -246,7 +241,7 @@ class HomeDonaturState extends State<HomeDonatur> with AutomaticKeepAliveClientM
                       }
                     });
                   },
-                  children: _buildWidgetOptions(),
+                  children: _buildWidgetOptions(username),
                 ),
               ),
         bottomNavigationBar: BottomNavigationBar(
@@ -274,6 +269,121 @@ class HomeDonaturState extends State<HomeDonatur> with AutomaticKeepAliveClientM
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ProfileDrawer extends StatelessWidget {
+  final String username;
+  const _ProfileDrawer({Key? key, required this.username}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      elevation: 16,
+      backgroundColor: Color(0xFFE6F1FB), // Soft blue background
+      child: Column(
+        children: [
+          SizedBox(height: 48),
+          // Profile Card
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient(
+                  colors: [Color(0xFF2986CC), Color(0xFF6EC1E4)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 12,
+                  offset: Offset(0, 6),
+                )],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                child: Row(
+                  children: [
+                    Icon(Icons.account_circle, size: 54, color: Colors.white),
+                    SizedBox(width: 18),
+                    Expanded(
+                      child: Text(
+                        username,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: Colors.white,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 28),
+          // Data Diri
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Card(
+              color: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 2,
+              child: ListTile(
+                leading: Icon(Icons.person_outline, color: Color(0xFF2986CC)),
+                title: Text('Data Diri', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF2986CC))),
+                trailing: Icon(Icons.chevron_right, color: Color(0xFF2986CC)),
+                onTap: () {},
+                splashColor: Color(0xFF6EC1E4).withOpacity(0.2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+            ),
+          ),
+          // Chat Admin
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 6),
+            child: Card(
+              color: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 2,
+              child: ListTile(
+                leading: Icon(Icons.chat_bubble_outline, color: Color(0xFF2986CC)),
+                title: Text('Chat Admin', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF2986CC))),
+                trailing: Icon(Icons.chevron_right, color: Color(0xFF2986CC)),
+                onTap: () {},
+                splashColor: Color(0xFF6EC1E4).withOpacity(0.2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+            ),
+          ),
+          // Keluar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 6),
+            child: Card(
+              color: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 2,
+              child: ListTile(
+                leading: Icon(Icons.logout, color: Colors.red),
+                title: Text('Keluar', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                onTap: () {},
+                splashColor: Colors.red.withOpacity(0.1),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+            ),
+          ),
+          Spacer(),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 24.0),
+            child: Text(
+              'Versi 1.0.0',
+              style: TextStyle(color: Color(0xFF6EC1E4), fontSize: 12),
+            ),
+          ),
+        ],
       ),
     );
   }

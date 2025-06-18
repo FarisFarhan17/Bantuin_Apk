@@ -26,7 +26,7 @@ class DonasiCard extends StatelessWidget {
       },
       child: Card(
         margin: EdgeInsets.symmetric(vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
         elevation: 3,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,7 +70,7 @@ class DonasiCard extends StatelessWidget {
                       ),
                       Text(
                         'Sisa hari: ${donasi.sisaHari}',
-                        style: TextStyle(fontSize: 13, color: Color(0xFF2986CC), fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 13, color: Colors.red, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),

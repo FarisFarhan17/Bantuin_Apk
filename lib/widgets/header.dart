@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 class Header extends StatelessWidget {
   final bool showSettings;
-  const Header({super.key, this.showSettings = false});
+  final VoidCallback? onProfileTap;
+  final String username;
+  const Header({super.key, this.showSettings = false, this.onProfileTap, required this.username});
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +14,7 @@ class Header extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Hai Faris!',
+            'Hai $username!',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           Row(
@@ -22,12 +24,14 @@ class Header extends StatelessWidget {
                 onPressed: () {},
               ),
               SizedBox(width: 8),
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: const Color.fromARGB(255, 54, 186, 148),
-                child: showSettings
-                    ? Icon(Icons.settings, color: Colors.white, size: 28)
-                    : Icon(Icons.person, color: Colors.white, size: 28),
+              IconButton(
+                icon: showSettings
+                    ? Icon(Icons.settings, color: Colors.blueGrey, size: 28)
+                    : Icon(Icons.person, color: Colors.blueGrey, size: 28),
+                onPressed: onProfileTap,
+                splashRadius: 28,
+                padding: EdgeInsets.zero,
+                constraints: BoxConstraints(),
               ),
             ],
           ),
