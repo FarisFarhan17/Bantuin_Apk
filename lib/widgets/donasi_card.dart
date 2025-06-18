@@ -1,29 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:convert';
+import 'dart:typed_data';
 import '../models/donasi.dart';
 import '../screens/donasi_detail_page.dart';
+import '../services/firebase_service.dart';
+import 'campaign_image.dart';
 
 class DonasiCard extends StatelessWidget {
   final Donasi donasi;
   final NumberFormat formatter;
   final bool showProgressPercentage;
-  const DonasiCard({super.key, required this.donasi, required this.formatter, this.showProgressPercentage = false});
+  final VoidCallback onTap;
 
-    @override
+  const DonasiCard({
+    super.key,
+    required this.donasi,
+    required this.formatter,
+    this.showProgressPercentage = false,
+    required this.onTap,
+  });
+
+  @override
   Widget build(BuildContext context) {
-    double progressDana = donasi.terkumpul / (donasi.target == 0 ? 1 : donasi.target);
-    final String gambarUrl = (donasi.gambar.trim().isNotEmpty)
-        ? donasi.gambar
-        : 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80';
+    final progressDana = donasi.target > 0 ? donasi.terkumpul / donasi.target : 0.0;
+    final progressBarang = donasi.barang.isNotEmpty 
+        ? donasi.barang.map((barang) => barang.terkumpul / barang.target).reduce((a, b) => a + b) / donasi.barang.length 
+        : 0.0;
+
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DonasiDetailPage(donasi: donasi),
-          ),
-        );
-      },
+      onTap: onTap,
       child: Card(
         margin: EdgeInsets.symmetric(vertical: 10),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
@@ -34,10 +40,10 @@ class DonasiCard extends StatelessWidget {
             // Gambar
             ClipRRect(
               borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              child: Image.network(
-                gambarUrl,
-                height: 150,
+              child: CampaignImage(
+                imageRef: donasi.gambar,
                 width: double.infinity,
+                height: 150,
                 fit: BoxFit.cover,
               ),
             ),
@@ -79,6 +85,78 @@ class DonasiCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildImageWidget(String gambar) {
+    if (gambar.startsWith('http') || gambar.startsWith('https')) {
+      return Image.network(
+        gambar,
+        height: 150,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildDefaultImage(),
+      );
+    } else if (gambar.startsWith('firestore://')) {
+      return FutureBuilder<String>(
+        future: FirebaseService().getImageFromBase64(gambar),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Container(
+              height: 150,
+              width: double.infinity,
+              color: Colors.grey[300],
+              child: Center(child: CircularProgressIndicator()),
+            );
+          } else if (snapshot.hasData && snapshot.data != null) {
+            try {
+              final Uint8List bytes = base64Decode(snapshot.data!);
+              return Image.memory(
+                bytes,
+                height: 150,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => _buildDefaultImage(),
+              );
+            } catch (e) {
+              return _buildDefaultImage();
+            }
+          } else {
+            return _buildDefaultImage();
+          }
+        },
+      );
+    } else if (gambar.startsWith('data:image')) {
+      final List<String> parts = gambar.split(',');
+      if (parts.length > 1) {
+        try {
+          final String base64 = parts[1];
+          final Uint8List bytes = base64Decode(base64);
+          return Image.memory(
+            bytes,
+            height: 150,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => _buildDefaultImage(),
+          );
+        } catch (e) {
+          return _buildDefaultImage();
+        }
+      }
+    }
+    return _buildDefaultImage();
+  }
+
+  Widget _buildDefaultImage() {
+    return Container(
+      height: 150,
+      width: double.infinity,
+      color: Colors.grey[300],
+      child: Icon(
+        Icons.image,
+        size: 50,
+        color: Colors.grey[600],
       ),
     );
   }

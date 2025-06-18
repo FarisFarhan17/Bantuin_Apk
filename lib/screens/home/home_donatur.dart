@@ -12,6 +12,10 @@ import '../donasi_list_page.dart'; // Import the new donasi list page
 import '../donasi_status_list_page.dart'; // Import the new donasi status list page
 import '../admin_login_page.dart'; // Import the new AdminLoginPage
 import '../user_chat_page.dart';
+import '../donasi_detail_page.dart'; // Import the new DonasiDetailPage
+import '../edit_profile_page.dart'; // Import the new EditProfilePage
+import '../auth/user_auth_page.dart';
+import 'dart:convert';
 
 class HomeDonatur extends StatefulWidget {
   final int initialIndex;
@@ -169,6 +173,14 @@ class HomeDonaturState extends State<HomeDonatur> with AutomaticKeepAliveClientM
                               donasi: d,
                               formatter: NumberFormat.decimalPattern('id'),
                               showProgressPercentage: true,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => DonasiDetailPage(donasi: d),
+                                  ),
+                                );
+                              },
                             )),
                       ],
                     ),
@@ -306,7 +318,13 @@ class _ProfileDrawer extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
                 child: Row(
                   children: [
-                    Icon(Icons.account_circle, size: 54, color: Colors.white),
+                    (FirebaseService.currentUser?.gambar != null && FirebaseService.currentUser!.gambar!.isNotEmpty)
+                      ? CircleAvatar(
+                          radius: 27,
+                          backgroundColor: Colors.white,
+                          backgroundImage: MemoryImage(base64Decode(FirebaseService.currentUser!.gambar!)),
+                        )
+                      : Icon(Icons.account_circle, size: 54, color: Colors.white),
                     SizedBox(width: 18),
                     Expanded(
                       child: Text(
@@ -336,7 +354,12 @@ class _ProfileDrawer extends StatelessWidget {
                 leading: Icon(Icons.person_outline, color: Color(0xFF2986CC)),
                 title: Text('Data Diri', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF2986CC))),
                 trailing: Icon(Icons.chevron_right, color: Color(0xFF2986CC)),
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => EditProfilePage()),
+                  );
+                },
                 splashColor: Color(0xFF6EC1E4).withOpacity(0.2),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
@@ -353,25 +376,51 @@ class _ProfileDrawer extends StatelessWidget {
                 leading: Icon(Icons.chat_bubble_outline, color: Color(0xFF2986CC)),
                 title: Text('Chat Admin', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF2986CC))),
                 trailing: Icon(Icons.chevron_right, color: Color(0xFF2986CC)),
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => UserChatPage()),
+                  );
+                },
                 splashColor: Color(0xFF6EC1E4).withOpacity(0.2),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
             ),
           ),
-          // Keluar
+          // Logout
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 6),
-            child: Card(
-              color: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              elevation: 2,
-              child: ListTile(
-                leading: Icon(Icons.logout, color: Colors.red),
-                title: Text('Keluar', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
-                onTap: () {},
-                splashColor: Colors.red.withOpacity(0.1),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            padding: const EdgeInsets.only(top: 32.0, bottom: 16.0),
+            child: Center(
+              child: TextButton(
+                onPressed: () async {
+                  final shouldLogout = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('Konfirmasi Logout'),
+                      content: Text('Apakah Anda yakin ingin keluar?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: Text('Batal'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: Text('Logout', style: TextStyle(color: Colors.red)),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (shouldLogout == true) {
+                    await FirebaseService.logout();
+                    if (context.mounted) {
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (context) => UserAuthPage()),
+                        (route) => false,
+                      );
+                    }
+                  }
+                },
+                child: Text('Keluar', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
               ),
             ),
           ),

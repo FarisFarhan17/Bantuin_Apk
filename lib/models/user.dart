@@ -3,12 +3,14 @@ class User {
   final String userId;
   final String username;
   final String password;
+  final String? gambar;
 
   User({
     required this.id,
     required this.userId,
     required this.username,
     required this.password,
+    this.gambar,
   });
 
   factory User.fromMap(String id, Map<String, dynamic> map) {
@@ -17,6 +19,7 @@ class User {
       userId: map['userId'] ?? '',
       username: map['username'] ?? '',
       password: map['password'] ?? '',
+      gambar: map['gambar'],
     );
   }
 
@@ -25,6 +28,7 @@ class User {
       'userId': userId,
       'username': username,
       'password': password,
+      if (gambar != null) 'gambar': gambar,
     };
   }
 } 

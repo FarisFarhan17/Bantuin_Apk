@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:convert';
+import 'dart:typed_data';
 import '../models/donasi.dart';
 import '../screens/donasi_detail_page.dart';
+import '../services/firebase_service.dart';
+import 'campaign_image.dart';
 
 class DonasiListPageCard extends StatelessWidget {
   final Donasi donasi;
   final NumberFormat formatter;
+  final bool showProgressPercentage;
 
   const DonasiListPageCard({
     super.key,
     required this.donasi,
     required this.formatter,
+    this.showProgressPercentage = false,
   });
 
   @override
   Widget build(BuildContext context) {
     double progressDana = donasi.terkumpul / (donasi.target == 0 ? 1 : donasi.target);
-    final String gambarUrl = (donasi.gambar.trim().isNotEmpty)
-        ? donasi.gambar
-        : 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80'; // Default image
 
     return GestureDetector(
       onTap: () {
@@ -37,10 +40,10 @@ class DonasiListPageCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Gambar (Left side)
-              Image.network(
-                gambarUrl,
-                height: 100, // Fixed height
-                width: 100,  // Fixed width
+              CampaignImage(
+                imageRef: donasi.gambar,
+                width: 100,
+                height: 100,
                 fit: BoxFit.cover,
               ),
               SizedBox(width: 12), // Space between image and text
@@ -104,6 +107,79 @@ class DonasiListPageCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildImageWidget(String gambar) {
+    if (gambar.startsWith('http') || gambar.startsWith('https')) {
+      return Image.network(
+        gambar,
+        height: 100, // Fixed height
+        width: 100,  // Fixed width
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildDefaultImage(),
+      );
+    } else if (gambar.startsWith('firestore://')) {
+      return FutureBuilder<String>(
+        future: FirebaseService().getImageFromBase64(gambar),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Container(
+              height: 100,
+              width: 100,
+              color: Colors.grey[300],
+              child: Center(child: CircularProgressIndicator()),
+            );
+          } else if (snapshot.hasData && snapshot.data != null) {
+            try {
+              final Uint8List bytes = base64Decode(snapshot.data!);
+              return Image.memory(
+                bytes,
+                height: 100,
+                width: 100,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => _buildDefaultImage(),
+              );
+            } catch (e) {
+              return _buildDefaultImage();
+            }
+          } else {
+            return _buildDefaultImage();
+          }
+        },
+      );
+    } else if (gambar.startsWith('data:image')) {
+      // Handle base64 image
+      final List<String> parts = gambar.split(',');
+      if (parts.length > 1) {
+        try {
+          final String base64Data = parts[1];
+          final Uint8List bytes = base64Decode(base64Data);
+          return Image.memory(
+            bytes,
+            height: 100,
+            width: 100,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => _buildDefaultImage(),
+          );
+        } catch (e) {
+          return _buildDefaultImage();
+        }
+      }
+    }
+    return _buildDefaultImage();
+  }
+
+  Widget _buildDefaultImage() {
+    return Container(
+      height: 100,
+      width: 100,
+      color: Colors.grey[300],
+      child: Icon(
+        Icons.image,
+        size: 30,
+        color: Colors.grey[600],
       ),
     );
   }

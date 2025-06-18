@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../models/saldo.dart';
 import '../models/donasi.dart';
 import '../models/donation_history_entry.dart';
@@ -59,6 +60,7 @@ import '../models/chat_message.dart';
 
 class FirebaseService {
   final _db = FirebaseFirestore.instance;
+  final _storage = FirebaseStorage.instance;
   
   // Static variable to store current logged-in user
   static User? _currentUser;
@@ -620,5 +622,157 @@ class FirebaseService {
     } catch (e) {
       print('Error marking chat room as read: $e');
     }
+  }
+
+  // Method to upload campaign image to Firebase Storage
+  Future<String> uploadCampaignImage(File imageFile, {Function(double)? onProgress}) async {
+    try {
+      final userId = currentUser?.userId ?? 'unknown_user';
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileName = 'campaign_${userId}_$timestamp.jpg';
+      
+      // Create a reference to the campaign images folder
+      final storageRef = _storage.ref().child('campaign_images/$fileName');
+      
+      // Set metadata for faster processing
+      final metadata = SettableMetadata(
+        contentType: 'image/jpeg',
+        cacheControl: 'public, max-age=31536000', // 1 year cache
+      );
+      
+      // Check if file exists and is readable
+      if (!await imageFile.exists()) {
+        throw Exception('Image file does not exist');
+      }
+      
+      // Get file size to ensure it's not empty
+      final fileSize = await imageFile.length();
+      if (fileSize == 0) {
+        throw Exception('Image file is empty');
+      }
+      
+      print('Uploading image: $fileName, size: ${fileSize} bytes');
+      
+      // Upload the file with metadata and timeout
+      final uploadTask = storageRef.putFile(imageFile, metadata);
+      
+      // Listen to upload progress if callback provided
+      if (onProgress != null) {
+        uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+          final progress = snapshot.bytesTransferred / snapshot.totalBytes;
+          onProgress(progress);
+        });
+      }
+      
+      // Get the download URL with timeout (30 seconds)
+      final snapshot = await uploadTask.timeout(
+        Duration(seconds: 30),
+        onTimeout: () {
+          throw Exception('Upload timeout - please check your internet connection');
+        },
+      );
+      
+      print('Upload completed, getting download URL...');
+      
+      // Get the download URL
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      
+      print('Download URL obtained: $downloadUrl');
+      
+      return downloadUrl;
+    } catch (e) {
+      print('Error uploading campaign image: $e');
+      
+      // Provide more specific error messages
+      if (e.toString().contains('object-not-found')) {
+        throw Exception('Firebase Storage not configured properly. Please check your Firebase project settings.');
+      } else if (e.toString().contains('permission-denied')) {
+        throw Exception('Upload permission denied. Please check Firebase Storage rules.');
+      } else if (e.toString().contains('network')) {
+        throw Exception('Network error. Please check your internet connection.');
+      } else {
+        throw Exception('Upload failed: ${e.toString()}');
+      }
+    }
+  }
+
+  // Method to upload campaign image as base64 in Firestore (FREE alternative)
+  Future<String> uploadCampaignImageAsBase64(File imageFile) async {
+    try {
+      // Read the file as bytes
+      final bytes = await imageFile.readAsBytes();
+      // Convert to base64 string
+      final base64String = base64Encode(bytes);
+      
+      // Store in Firestore as a document
+      final userId = currentUser?.userId ?? 'unknown_user';
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final docId = 'campaign_image_${userId}_$timestamp';
+      
+      await _db.collection('campaign_images').doc(docId).set({
+        'imageData': base64String,
+        'userId': userId,
+        'timestamp': timestamp,
+        'contentType': 'image/jpeg',
+        'fileName': 'campaign_${userId}_$timestamp.jpg',
+      });
+      
+      // Return a reference to the document
+      return 'firestore://campaign_images/$docId';
+    } catch (e) {
+      print('Error storing image as base64: $e');
+      throw Exception('Failed to store image: ${e.toString()}');
+    }
+  }
+
+  // Method to get image from base64 stored in Firestore
+  Future<String> getImageFromBase64(String imageRef) async {
+    try {
+      if (imageRef.startsWith('firestore://')) {
+        final docId = imageRef.replaceFirst('firestore://campaign_images/', '');
+        final doc = await _db.collection('campaign_images').doc(docId).get();
+        
+        if (doc.exists) {
+          final data = doc.data()!;
+          return data['imageData'] as String;
+        } else {
+          throw Exception('Image not found');
+        }
+      } else {
+        // If it's a regular URL, return as is
+        return imageRef;
+      }
+    } catch (e) {
+      print('Error getting image from base64: $e');
+      throw e;
+    }
+  }
+
+  // Update user profile picture (gambar) as base64 string
+  Future<void> updateUserProfilePicture(String base64Image) async {
+    final user = currentUser;
+    if (user == null) throw Exception('User not logged in');
+    await _db.collection('users').doc(user.id).update({'gambar': base64Image});
+    // Update local user object
+    setCurrentUser(User(
+      id: user.id,
+      userId: user.userId,
+      username: user.username,
+      password: user.password,
+      gambar: base64Image,
+    ));
+  }
+
+  // Fetch user data (including gambar)
+  Future<User?> fetchCurrentUser() async {
+    final user = currentUser;
+    if (user == null) return null;
+    final doc = await _db.collection('users').doc(user.id).get();
+    if (!doc.exists) return null;
+    return User.fromMap(doc.id, doc.data()!);
+  }
+
+  static Future<void> logout() async {
+    clearCurrentUser();
   }
 } 

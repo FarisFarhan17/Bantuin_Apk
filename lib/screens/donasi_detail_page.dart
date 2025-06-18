@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/donasi.dart';
 import '../widgets/donation_options_sheet.dart';
+import '../widgets/campaign_image.dart';
 
 class DonasiDetailPage extends StatelessWidget {
   final Donasi donasi;
@@ -11,9 +12,6 @@ class DonasiDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double progressDana = donasi.terkumpul / (donasi.target == 0 ? 1 : donasi.target);
-    final String gambarUrl = (donasi.gambar.trim().isNotEmpty)
-        ? donasi.gambar
-        : 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80';
     return Scaffold(
       body: Stack(
         children: [
@@ -22,8 +20,8 @@ class DonasiDetailPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Image.network(
-                  gambarUrl,
+                CampaignImage(
+                  imageRef: donasi.gambar,
                   height: 300,
                   width: double.infinity,
                   fit: BoxFit.cover,

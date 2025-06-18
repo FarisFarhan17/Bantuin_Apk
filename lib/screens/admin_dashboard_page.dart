@@ -72,12 +72,31 @@ class _AdminDashboardState extends State<AdminDashboard>
     super.dispose();
   }
 
-  void _logout() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const LandingPage()),
-      (Route<dynamic> route) => false,
+  Future<void> _logout() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Konfirmasi Logout'),
+        content: Text('Apakah Anda yakin ingin keluar dari akun admin?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text('Logout', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
+    if (shouldLogout == true) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LandingPage()),
+        (Route<dynamic> route) => false,
+      );
+    }
   }
 
   @override

@@ -405,20 +405,22 @@ class _DonasiStatusPageState extends State<DonasiStatusPage> {
                           ),
                         ),
                         SizedBox(height: 12),
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Text(
-                              'Mohon tunggu konfirmasi admin',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey[600],
+                        if (widget.donasi.status != 'Terverifikasi') ...[
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Text(
+                                'Mohon tunggu konfirmasi admin',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[600],
+                                ),
+                                textAlign: TextAlign.center,
                               ),
-                              textAlign: TextAlign.center,
                             ),
                           ),
-                        ),
+                        ],
                       ] else ...[
                         if (_buktiImage != null) ...[
                           Container(
