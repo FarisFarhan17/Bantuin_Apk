@@ -7,11 +7,11 @@ class MenuGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color green = Color(0xFF43e97b);
+    final Color blue = Color(0xFF2986CC);
     final List<Map<String, dynamic>> menu = [
-      {'icon': Icons.volunteer_activism, 'label': 'Donasi', 'color': green},
-      {'icon': Icons.assignment_turned_in, 'label': 'Status Donasi', 'color': green},
-      {'icon': Icons.info_outline, 'label': 'Informan', 'color': green},
+      {'icon': Icons.volunteer_activism, 'label': 'Donasi', 'color': blue},
+      {'icon': Icons.assignment_turned_in, 'label': 'Status Donasi', 'color': blue},
+      {'icon': Icons.info_outline, 'label': 'Informan', 'color': blue},
     ];
     return GridView.builder(
       shrinkWrap: true,
@@ -38,10 +38,21 @@ class MenuGrid extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircleAvatar(
-                backgroundColor: menu[i]['color'].withOpacity(0.15),
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: menu[i]['color'].withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: menu[i]['color'].withOpacity(0.08),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
                 child: Icon(menu[i]['icon'], color: menu[i]['color'], size: 28),
-                radius: 28,
               ),
               SizedBox(height: 8),
               Text(menu[i]['label'], style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),

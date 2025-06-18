@@ -70,7 +70,7 @@ class DonasiCard extends StatelessWidget {
                       ),
                       Text(
                         'Sisa hari: ${donasi.sisaHari}',
-                        style: TextStyle(fontSize: 13, color: Colors.red, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 13, color: Color(0xFF2986CC), fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),

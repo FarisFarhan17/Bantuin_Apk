@@ -367,7 +367,7 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color.fromARGB(255, 50, 187, 95),
+                          backgroundColor: Color(0xFF2986CC),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -405,7 +405,7 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
                         width: double.infinity,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color.fromARGB(255, 50, 187, 95),
+                            backgroundColor: Color(0xFF2986CC),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -442,7 +442,7 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
             Expanded(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: selectedDonationType == 'money' ? Colors.green : Colors.grey[300],
+                  backgroundColor: selectedDonationType == 'money' ? Color(0xFF2986CC) : Colors.grey[300],
                   foregroundColor: selectedDonationType == 'money' ? Colors.white : Colors.black87,
                   padding: EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -460,7 +460,7 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
             Expanded(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: selectedDonationType == 'goods' ? Colors.green : Colors.grey[300],
+                  backgroundColor: selectedDonationType == 'goods' ? Color(0xFF2986CC) : Colors.grey[300],
                   foregroundColor: selectedDonationType == 'goods' ? Colors.white : Colors.black87,
                   padding: EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -504,7 +504,7 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
                     padding: const EdgeInsets.symmetric(horizontal: 4.0),
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: selectedAmount == value ? Colors.green : Colors.grey[300],
+                        backgroundColor: selectedAmount == value ? Color(0xFF2986CC) : Colors.grey[300],
                         foregroundColor: selectedAmount == value ? Colors.white : Colors.black87,
                       ),
                       onPressed: () => selectAmount(value),
@@ -524,7 +524,7 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
                     padding: const EdgeInsets.symmetric(horizontal: 4.0),
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: selectedAmount == value ? Colors.green : Colors.grey[300],
+                        backgroundColor: selectedAmount == value ? Color(0xFF2986CC) : Colors.grey[300],
                         foregroundColor: selectedAmount == value ? Colors.white : Colors.black87,
                       ),
                       onPressed: () => selectAmount(value),
@@ -730,7 +730,7 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
                                 child: LinearProgressIndicator(
                                   value: progress,
                                   backgroundColor: Colors.grey[300],
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2986CC)),
                                   minHeight: 6,
                                 ),
                               ),

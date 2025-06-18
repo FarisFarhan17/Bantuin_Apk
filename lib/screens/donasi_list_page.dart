@@ -144,7 +144,7 @@ class _DonasiListPageState extends State<DonasiListPage> {
         children: [
           // Wrap search bar and filter buttons in a Container for background
           Container(
-            color: Color.fromARGB(255, 183, 239, 208), // Light color from Home page gradient
+            color: Color(0xFFE6F1FB), // Light blue background
             child: Column( // Use a Column to arrange the search bar and filter buttons
               children: [
                 // Search bar with filter icon (above filter buttons) - Swapped position
@@ -175,7 +175,7 @@ class _DonasiListPageState extends State<DonasiListPage> {
                           child: Container(
                             padding: EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.green,
+                              color: Color(0xFF2986CC),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(Icons.filter_list, color: Colors.white),
@@ -338,15 +338,15 @@ class FilterButton extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.green : Colors.white,
+          color: isSelected ? Color(0xFF2986CC) : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.green)
+          border: Border.all(color: Color(0xFF2986CC))
         ),
         child: Center(
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : Colors.green,
+              color: isSelected ? Colors.white : Color(0xFF2986CC),
               fontWeight: FontWeight.bold
             ),
           ),

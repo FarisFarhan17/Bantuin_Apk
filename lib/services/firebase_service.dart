@@ -7,6 +7,7 @@ import '../models/item_donation_entry.dart';
 import 'dart:io';
 import 'dart:convert';
 import '../models/user.dart';
+import '../models/chat_message.dart';
 
 // New model for item donations for verification
 // class ItemDonationEntry {
@@ -311,40 +312,38 @@ class FirebaseService {
   Future<List<Donasi>> getDonasiStatusList() async {
     try {
       final userId = currentUser?.userId ?? 'donatur_1';
-      // First, get all donations for the user without status filter
-      final allDonationsSnapshot = await _db
-          .collection('user_donations_items')
-          .where('user_id', isEqualTo: userId)
-          .get();
-
-      print('Total donations found: ${allDonationsSnapshot.docs.length}');
       
-      // Print each donation's data for debugging
-      for (var doc in allDonationsSnapshot.docs) {
-        print('Donation ID: ${doc.id}');
-        print('Raw Data: ${doc.data()}');
-      }
-
-      // Now get the filtered donations
-      final itemDonationsSnapshot = await _db
+      // Try both field names to handle the transition
+      final newFieldSnapshot = await _db
           .collection('user_donations_items')
-          .where('user_id', isEqualTo: userId)
-          .where('status', whereIn: ['Proses', 'Konfirming'])
+          .where('userId', isEqualTo: userId)
           .get();
 
-      print('Filtered donations found: ${itemDonationsSnapshot.docs.length}');
+      final oldFieldSnapshot = await _db
+          .collection('user_donations_items')
+          .where('user_id', isEqualTo: userId)
+          .get();
+      
+      // Combine both results
+      final allDocs = [...newFieldSnapshot.docs, ...oldFieldSnapshot.docs];
+      
+      // Remove duplicates based on document ID
+      final uniqueDocs = <String, QueryDocumentSnapshot>{};
+      for (var doc in allDocs) {
+        uniqueDocs[doc.id] = doc;
+      }
+      
+      final uniqueDonations = uniqueDocs.values.toList();
 
       // Convert item donations to Donasi objects
-      final donations = itemDonationsSnapshot.docs.map((doc) {
-        final data = doc.data();
-        print('Processing donation data:');
-        print(data);
+      final donations = uniqueDonations.map((doc) {
+        final data = doc.data() as Map<String, dynamic>? ?? {};
         
         final donasi = Donasi(
           id: doc.id,
-          judul: data['donasi_title'] ?? 'Donasi ${data['item_name']}',
+          judul: data['donasi_title'] ?? 'Donasi ${data['item_name'] ?? 'Barang'}',
           yayasan: data['yayasan_name'] ?? 'Donasi Barang',
-          deskripsi: 'Jumlah: ${data['quantity']} ${data['item_name']} (lat:${data['yayasan_lat']},lon:${data['yayasan_lon']})',
+          deskripsi: 'Jumlah: ${data['quantity'] ?? 0} ${data['item_name'] ?? 'barang'} (lat:${data['yayasan_lat'] ?? 0},lon:${data['yayasan_lon'] ?? 0})',
           target: 0,
           terkumpul: 0,
           gambar: data['bukti_image'] ?? '',
@@ -363,13 +362,11 @@ class FirebaseService {
               : DateTime.now(),
         );
         
-        print('Created Donasi object:');
-        print('Yayasan: ${donasi.yayasan}');
-        print('Lokasi: ${donasi.lokasi}');
-        print('Deskripsi: ${donasi.deskripsi}');
-        
         return donasi;
       }).toList();
+
+      // Sort by timestamp (newest first)
+      donations.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
       return donations;
     } catch (e) {
@@ -392,7 +389,7 @@ class FirebaseService {
     final userId = currentUser?.userId ?? 'unknown_user';
     try {
       await _db.collection('user_donations_items').add({
-        'user_id': userId,
+        'userId': userId,
         'donasi_id': donasiId,
         'item_name': itemName,
         'quantity': quantity,
@@ -481,5 +478,147 @@ class FirebaseService {
       return user;
     }
     return null;
+  }
+
+  // Chat methods
+  Future<List<ChatRoom>> getChatRooms() async {
+    try {
+      final snapshot = await _db.collection('chat_rooms').orderBy('lastMessageTime', descending: true).get();
+      return snapshot.docs.map((doc) => ChatRoom.fromMap(doc.id, doc.data())).toList();
+    } catch (e) {
+      print('Error getting chat rooms: $e');
+      return [];
+    }
+  }
+
+  Future<List<ChatMessage>> getChatMessages(String chatRoomId) async {
+    try {
+      final snapshot = await _db
+          .collection('chat_rooms')
+          .doc(chatRoomId)
+          .collection('messages')
+          .orderBy('timestamp', descending: false)
+          .get();
+      return snapshot.docs.map((doc) => ChatMessage.fromMap(doc.id, doc.data())).toList();
+    } catch (e) {
+      print('Error getting chat messages: $e');
+      return [];
+    }
+  }
+
+  Future<void> sendMessage({
+    required String chatRoomId,
+    required String message,
+    required bool isAdmin,
+    String? imageUrl,
+  }) async {
+    try {
+      final currentUser = FirebaseService.currentUser;
+      final senderId = isAdmin ? 'admin' : (currentUser?.userId ?? 'unknown');
+      final senderName = isAdmin ? 'Admin' : (currentUser?.username ?? 'Unknown User');
+
+      final chatMessage = ChatMessage(
+        id: '',
+        senderId: senderId,
+        senderName: senderName,
+        message: message,
+        timestamp: DateTime.now(),
+        isAdmin: isAdmin,
+        imageUrl: imageUrl,
+      );
+
+      // Send message first
+      await _db
+          .collection('chat_rooms')
+          .doc(chatRoomId)
+          .collection('messages')
+          .add(chatMessage.toMap());
+
+      // Update chat room with last message (separate operation to avoid conflicts)
+      try {
+        final lastMessageText = imageUrl != null ? '📷 Gambar' : message;
+        await _db.collection('chat_rooms').doc(chatRoomId).update({
+          'lastMessage': lastMessageText,
+          'lastMessageTime': Timestamp.fromDate(DateTime.now()),
+          'hasUnreadMessages': !isAdmin, // Mark as unread if message is from user
+        });
+      } catch (updateError) {
+        print('Error updating chat room: $updateError');
+        // Don't throw here, message was sent successfully
+      }
+    } catch (e) {
+      print('Error sending message: $e');
+      throw e;
+    }
+  }
+
+  // Method to upload chat image
+  Future<String> uploadChatImage(File imageFile) async {
+    try {
+      // Read the file as bytes
+      final bytes = await imageFile.readAsBytes();
+      // Convert to base64 string
+      final base64String = base64Encode(bytes);
+      return base64String;
+    } catch (e) {
+      print('Error processing chat image: $e');
+      throw e;
+    }
+  }
+
+  Future<String> createOrGetChatRoom() async {
+    try {
+      final currentUser = FirebaseService.currentUser;
+      if (currentUser == null) {
+        throw Exception('User not logged in');
+      }
+
+      // Check if chat room already exists for this user
+      final existingRooms = await _db
+          .collection('chat_rooms')
+          .where('userId', isEqualTo: currentUser.userId)
+          .limit(1)
+          .get();
+
+      if (existingRooms.docs.isNotEmpty) {
+        return existingRooms.docs.first.id;
+      }
+
+      // Create new chat room
+      final chatRoom = ChatRoom(
+        id: '',
+        userId: currentUser.userId,
+        userName: currentUser.username,
+        lastMessageTime: DateTime.now(),
+        lastMessage: '',
+        hasUnreadMessages: false,
+      );
+
+      final docRef = await _db.collection('chat_rooms').add(chatRoom.toMap());
+      return docRef.id;
+    } catch (e) {
+      print('Error creating chat room: $e');
+      throw e;
+    }
+  }
+
+  Stream<List<ChatMessage>> getChatMessagesStream(String chatRoomId) {
+    return _db
+        .collection('chat_rooms')
+        .doc(chatRoomId)
+        .collection('messages')
+        .orderBy('timestamp', descending: false)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => ChatMessage.fromMap(doc.id, doc.data())).toList());
+  }
+
+  Future<void> markChatRoomAsRead(String chatRoomId) async {
+    try {
+      await _db.collection('chat_rooms').doc(chatRoomId).update({
+        'hasUnreadMessages': false,
+      });
+    } catch (e) {
+      print('Error marking chat room as read: $e');
+    }
   }
 } 

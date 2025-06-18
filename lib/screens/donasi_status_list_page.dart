@@ -297,12 +297,19 @@ class _DonasiStatusListPageState extends State<DonasiStatusListPage> {
   }
 
   Color _getStatusColor(String status) {
-    if (status == 'Proses') {
-      return Colors.orange;
-    } else if (status == 'Selesai') {
-      return Colors.green;
-    } else {
-      return Colors.grey;
+    switch (status) {
+      case 'Proses':
+        return Colors.orange;
+      case 'Konfirming':
+        return Colors.blue;
+      case 'Terverifikasi':
+        return Colors.green;
+      case 'Ditolak':
+        return Colors.red;
+      case 'Selesai':
+        return Colors.green;
+      default:
+        return Colors.grey;
     }
   }
 } 

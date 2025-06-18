@@ -6,6 +6,7 @@ import 'donation_verification.dart';
 import '../../models/donasi.dart';
 import '../../services/firebase_service.dart';
 import '../../screens/landing_page.dart';
+import 'admin_chat_list_page.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({Key? key}) : super(key: key);
@@ -82,6 +83,24 @@ class _AdminDashboardState extends State<AdminDashboard>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Admin Dashboard'),
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.chat),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AdminChatListPage(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

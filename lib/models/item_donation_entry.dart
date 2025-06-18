@@ -33,7 +33,7 @@ class ItemDonationEntry {
     return ItemDonationEntry(
       id: id,
       donasiId: data['donasi_id'] ?? '',
-      userId: data['user_id'] ?? '',
+      userId: data['userId'] ?? data['user_id'] ?? '',
       itemName: data['item_name'] ?? '',
       quantity: data['quantity'] ?? 0,
       buktiBase64: data['bukti_image'],

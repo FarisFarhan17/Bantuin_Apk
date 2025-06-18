@@ -44,14 +44,17 @@ class _SaldoCardState extends State<SaldoCard> {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.green.shade400, Colors.green.shade200],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF2986CC), // left blue
+            Color(0xFF6EC1E4), // right lighter blue
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.green.withOpacity(0.15),
+            color: Color(0xFF2986CC).withOpacity(0.15),
             blurRadius: 10,
             offset: Offset(0, 4),
           ),
@@ -90,7 +93,7 @@ class _SaldoCardState extends State<SaldoCard> {
               CircleAvatar(
                 backgroundColor: Colors.white,
                 radius: 28,
-                child: Icon(Icons.account_balance_wallet, color: Colors.green, size: 32),
+                child: Icon(Icons.account_balance_wallet, color: Color(0xFF2986CC), size: 32),
               ),
               SizedBox(height: 8),
               GestureDetector(
