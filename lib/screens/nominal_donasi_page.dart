@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../services/firebase_service.dart'; // Import FirebaseService
-import '../models/donasi.dart'; // Import Donasi model
-import 'donasi_status_list_page.dart';
+import '../models/donasi.dart';
+import '../services/firebase_service.dart';
+import '../screens/home/home_donatur.dart';
 import 'donasi_list_page.dart';
-import 'home/home_donatur.dart';
 
 class NominalDonasiPage extends StatefulWidget {
   final int donationAmount;
@@ -118,10 +117,9 @@ class _NominalDonasiPageState extends State<NominalDonasiPage> {
 
   Future<void> _processDonation() async {
     try {
-      await _firebaseService.deductSaldo('donatur_1', widget.donationAmount);
+      await _firebaseService.deductSaldo(widget.donationAmount);
 
       await _firebaseService.addDonationHistory(
-        userId: 'donatur_1',
         donasiId: widget.donasi.id,
         donasiTitle: widget.donasi.judul,
         amount: widget.donationAmount,

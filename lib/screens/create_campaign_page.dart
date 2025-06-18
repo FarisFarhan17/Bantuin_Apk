@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../models/donasi.dart';
 import 'package:intl/intl.dart';
+import '../services/firebase_service.dart';
 
 class CreateCampaignPage extends StatefulWidget {
   const CreateCampaignPage({super.key});
@@ -136,6 +137,7 @@ class _CreateCampaignPageState extends State<CreateCampaignPage> {
         'sisa_hari': int.parse(_sisaHariController.text),
         'status': 'Proses',
         'timestamp': DateTime.now().millisecondsSinceEpoch,
+        'userId': FirebaseService.currentUser?.userId ?? 'unknown_user',
       };
 
       await _db.collection('donasi').add(campaignData);

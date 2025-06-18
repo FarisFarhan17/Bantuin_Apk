@@ -9,7 +9,7 @@ class DonasiCard extends StatelessWidget {
   final bool showProgressPercentage;
   const DonasiCard({super.key, required this.donasi, required this.formatter, this.showProgressPercentage = false});
 
-  @override
+    @override
   Widget build(BuildContext context) {
     double progressDana = donasi.terkumpul / (donasi.target == 0 ? 1 : donasi.target);
     final String gambarUrl = (donasi.gambar.trim().isNotEmpty)
@@ -36,7 +36,7 @@ class DonasiCard extends StatelessWidget {
               borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               child: Image.network(
                 gambarUrl,
-                height: 120,
+                height: 150,
                 width: double.infinity,
                 fit: BoxFit.cover,
               ),

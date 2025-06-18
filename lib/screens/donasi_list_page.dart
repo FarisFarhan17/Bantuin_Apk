@@ -59,7 +59,7 @@ class _DonasiListPageState extends State<DonasiListPage> {
 
   Future<void> _loadData() async {
     _activeDonasiFuture = _firebaseService.getDonasiList();
-    _donationHistoryFuture = _firebaseService.getDonationHistory('donatur_1'); // Replace with dynamic user ID
+    _donationHistoryFuture = _firebaseService.getDonationHistory(); // Use current user
     // We will handle the UI update once the futures complete in the FutureBuilder
   }
 

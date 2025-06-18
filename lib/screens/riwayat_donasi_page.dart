@@ -18,12 +18,12 @@ class _RiwayatDonasiPageState extends State<RiwayatDonasiPage> {
   @override
   void initState() {
     super.initState();
-    _donationHistoryFuture = _firebaseService.getDonationHistory('donatur_1'); // Fetch history for donatur_1
+    _donationHistoryFuture = _firebaseService.getDonationHistory(); // Fetch history for current user
   }
 
   Future<void> _refreshData() async {
     setState(() {
-      _donationHistoryFuture = _firebaseService.getDonationHistory('donatur_1');
+      _donationHistoryFuture = _firebaseService.getDonationHistory();
     });
   }
 

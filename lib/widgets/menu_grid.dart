@@ -11,21 +11,20 @@ class MenuGrid extends StatelessWidget {
     final List<Map<String, dynamic>> menu = [
       {'icon': Icons.volunteer_activism, 'label': 'Donasi', 'color': green},
       {'icon': Icons.assignment_turned_in, 'label': 'Status Donasi', 'color': green},
-      {'icon': Icons.location_on, 'label': 'Lokasi Yayasan', 'color': green},
       {'icon': Icons.info_outline, 'label': 'Informan', 'color': green},
     ];
     return GridView.builder(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
+        crossAxisCount: 3,
         childAspectRatio: 0.75,
       ),
       itemCount: menu.length,
       itemBuilder: (context, i) {
         return GestureDetector(
           onTap: () {
-            if (i == 3) { // Informan icon
+            if (i == 2) { // Adjusted index for 'Informan' button
               Navigator.push(
                 context,
                 MaterialPageRoute(

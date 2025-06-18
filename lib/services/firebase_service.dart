@@ -6,6 +6,7 @@ import '../models/user_admin.dart';
 import '../models/item_donation_entry.dart';
 import 'dart:io';
 import 'dart:convert';
+import '../models/user.dart';
 
 // New model for item donations for verification
 // class ItemDonationEntry {
@@ -57,12 +58,29 @@ import 'dart:convert';
 
 class FirebaseService {
   final _db = FirebaseFirestore.instance;
+  
+  // Static variable to store current logged-in user
+  static User? _currentUser;
+  
+  // Getter for current user
+  static User? get currentUser => _currentUser;
+  
+  // Set current user
+  static void setCurrentUser(User user) {
+    _currentUser = user;
+  }
+  
+  // Clear current user (logout)
+  static void clearCurrentUser() {
+    _currentUser = null;
+  }
 
   Future<Saldo> getSaldo() async {
-    final doc = await _db.collection('saldo').doc('donatur_1').get();
+    final userId = currentUser?.userId ?? 'donatur_1'; // Fallback to default if no user logged in
+    final doc = await _db.collection('saldo').doc(userId).get();
     if (!doc.exists) {
-      await _db.collection('saldo').doc('donatur_1').set({'total': 100000});
-      return Saldo(id: 'donatur_1', total: 100000);
+      await _db.collection('saldo').doc(userId).set({'total': 100000});
+      return Saldo(id: userId, total: 100000);
     }
     return Saldo.fromMap(doc.id, doc.data()!);
   }
@@ -98,7 +116,8 @@ class FirebaseService {
   }
 
   // New method to deduct saldo
-  Future<void> deductSaldo(String userId, int amount) async {
+  Future<void> deductSaldo(int amount) async {
+    final userId = currentUser?.userId ?? 'donatur_1';
     final saldoRef = _db.collection('saldo').doc(userId);
     await _db.runTransaction((transaction) async {
       final snapshot = await transaction.get(saldoRef);
@@ -115,12 +134,12 @@ class FirebaseService {
 
   // New method to add donation history
   Future<void> addDonationHistory({
-    required String userId,
     required String donasiId,
     required String donasiTitle,
     required int amount,
     required DateTime timestamp,
   }) async {
+    final userId = currentUser?.userId ?? 'unknown_user';
     await _db.collection('user_donations').add({
       'userId': userId,
       'donasiId': donasiId,
@@ -192,7 +211,8 @@ class FirebaseService {
   }
 
   // New method to get donation history for a user
-  Future<List<DonationHistoryEntry>> getDonationHistory(String userId) async {
+  Future<List<DonationHistoryEntry>> getDonationHistory() async {
+    final userId = currentUser?.userId ?? 'unknown_user';
     final snapshot = await _db
         .collection('user_donations')
         .where('userId', isEqualTo: userId)
@@ -290,10 +310,11 @@ class FirebaseService {
 
   Future<List<Donasi>> getDonasiStatusList() async {
     try {
+      final userId = currentUser?.userId ?? 'donatur_1';
       // First, get all donations for the user without status filter
       final allDonationsSnapshot = await _db
           .collection('user_donations_items')
-          .where('user_id', isEqualTo: 'donatur_1')
+          .where('user_id', isEqualTo: userId)
           .get();
 
       print('Total donations found: ${allDonationsSnapshot.docs.length}');
@@ -307,7 +328,7 @@ class FirebaseService {
       // Now get the filtered donations
       final itemDonationsSnapshot = await _db
           .collection('user_donations_items')
-          .where('user_id', isEqualTo: 'donatur_1')
+          .where('user_id', isEqualTo: userId)
           .where('status', whereIn: ['Proses', 'Konfirming'])
           .get();
 
@@ -359,7 +380,6 @@ class FirebaseService {
 
   // Method to add item donation
   Future<void> addItemDonation({
-    required String userId,
     required String donasiId,
     required String itemName,
     required int quantity,
@@ -369,6 +389,7 @@ class FirebaseService {
     required double yayasanLat,
     required double yayasanLon,
   }) async {
+    final userId = currentUser?.userId ?? 'unknown_user';
     try {
       await _db.collection('user_donations_items').add({
         'user_id': userId,
@@ -380,7 +401,7 @@ class FirebaseService {
         'yayasan_address': yayasanAddress,
         'yayasan_lat': yayasanLat,
         'yayasan_lon': yayasanLon,
-        'status': 'Konfirming', // Initial status for item donations awaiting verification
+        'status': 'Proses', // Set initial status to Proses
         'created_at': FieldValue.serverTimestamp(),
       });
     } catch (e) {
@@ -420,5 +441,45 @@ class FirebaseService {
       print('Error updating campaign verification status: $e');
       throw e;
     }
+  }
+
+  // User registration (sign up)
+  Future<void> registerUser({
+    required String username,
+    required String password,
+  }) async {
+    // Check if username already exists
+    final snapshot = await _db.collection('users').where('username', isEqualTo: username).limit(1).get();
+    if (snapshot.docs.isNotEmpty) {
+      throw Exception('Username already exists');
+    }
+    
+    // Generate a unique userId
+    final userId = 'user_${DateTime.now().millisecondsSinceEpoch}_${username}';
+    
+    await _db.collection('users').add({
+      'userId': userId,
+      'username': username,
+      'password': password,
+    });
+  }
+
+  // User login (sign in)
+  Future<User?> loginUser({
+    required String username,
+    required String password,
+  }) async {
+    final snapshot = await _db.collection('users')
+        .where('username', isEqualTo: username)
+        .where('password', isEqualTo: password)
+        .limit(1)
+        .get();
+    if (snapshot.docs.isNotEmpty) {
+      final user = User.fromMap(snapshot.docs.first.id, snapshot.docs.first.data());
+      // Set current user when login is successful
+      setCurrentUser(user);
+      return user;
+    }
+    return null;
   }
 } 

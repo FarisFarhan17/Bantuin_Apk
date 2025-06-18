@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:crud_firebase/screens/home/home_donatur.dart'; // Import HomeDonatur
+import 'package:crud_firebase/screens/auth/user_auth_page.dart'; // Import UserAuthPage
 
 class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
@@ -13,7 +13,7 @@ class LandingPage extends StatelessWidget {
           if (details.primaryVelocity! < 0) { // Swiping up
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const HomeDonatur()),
+              MaterialPageRoute(builder: (context) => const UserAuthPage()),
             );
           }
         },

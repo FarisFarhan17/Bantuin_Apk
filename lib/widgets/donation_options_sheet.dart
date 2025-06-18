@@ -260,7 +260,6 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
         if (entry.value) {
           print('Adding donation for item: ${entry.key}');
           await _firebaseService.addItemDonation(
-            userId: 'donatur_1',
             donasiId: widget.donasi.id,
             itemName: entry.key,
             quantity: itemQuantities[entry.key] ?? 0,

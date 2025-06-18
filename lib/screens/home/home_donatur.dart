@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/header.dart';
-import '../../widgets/search_bar.dart';
 import '../../widgets/saldo_card.dart';
 import '../../widgets/menu_grid.dart';
 import '../../widgets/donasi_card.dart';
@@ -91,13 +90,9 @@ class HomeDonaturState extends State<HomeDonatur> with AutomaticKeepAliveClientM
               SizedBox(height: 32),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Header(showSettings: true),
+                child: Header(showSettings: false),
               ),
               SizedBox(height: 12),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: CustomSearchBar(),
-              ),
               SizedBox(height: 16),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
