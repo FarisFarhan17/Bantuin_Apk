@@ -174,11 +174,6 @@ class _UserAuthPageState extends State<UserAuthPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      if (isLogin)
-                        TextButton(
-                          onPressed: () {},
-                          child: const Text('Lupa Kata Sandi?'),
-                        ),
                     ],
                   ),
                   const SizedBox(height: 8),

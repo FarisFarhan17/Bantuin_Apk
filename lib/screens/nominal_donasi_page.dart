@@ -116,6 +116,12 @@ class _NominalDonasiPageState extends State<NominalDonasiPage> {
   }
 
   Future<void> _processDonation() async {
+    // Check if campaign has ended (sisaHari == 0)
+    if (widget.donasi.sisaHari == 0) {
+      _showErrorDialog('Kampanye telah berakhir. Donasi tidak dapat dilakukan.');
+      return;
+    }
+
     try {
       await _firebaseService.deductSaldo(widget.donationAmount);
 
@@ -220,26 +226,60 @@ class _NominalDonasiPageState extends State<NominalDonasiPage> {
               'Rp ${widget.formatter.format(widget.currentSaldo)}',
               style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.blueAccent),
             ),
+            if (widget.donasi.sisaHari == 0)
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(12),
+                margin: EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning, color: Colors.red[600], size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Kampanye telah berakhir. Donasi tidak dapat dilakukan.',
+                        style: TextStyle(
+                          color: Colors.red[700],
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Expanded(child: Container()),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF43e97b),
+                  backgroundColor: widget.donasi.sisaHari == 0 
+                      ? Colors.grey[400] 
+                      : Color(0xFF43e97b),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   padding: EdgeInsets.symmetric(vertical: 16.0),
                   foregroundColor: Colors.white,
                 ),
-                onPressed: () {
-                  if (widget.donationAmount > widget.currentSaldo) {
-                    _showErrorDialog('Saldo tidak mencukupi.');
-                  } else {
-                     _showConfirmationDialog();
-                  }
-                },
-                child: Text('Lanjutkan'),
+                onPressed: widget.donasi.sisaHari == 0 
+                    ? null 
+                    : () {
+                        if (widget.donationAmount > widget.currentSaldo) {
+                          _showErrorDialog('Saldo tidak mencukupi.');
+                        } else {
+                           _showConfirmationDialog();
+                        }
+                      },
+                child: Text(
+                  widget.donasi.sisaHari == 0 ? 'Kampanye Berakhir' : 'Lanjutkan',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],

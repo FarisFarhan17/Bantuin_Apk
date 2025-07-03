@@ -95,9 +95,35 @@ class DonasiListPageCard extends StatelessWidget {
                           'Terkumpul: Rp ${formatter.format(donasi.terkumpul)}',
                           style: TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
                         ),
-                        Text(
-                          'Sisa hari: ${donasi.sisaHari}',
-                          style: TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                        Row(
+                          children: [
+                            if (donasi.sisaHari == 0)
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                margin: EdgeInsets.only(right: 3),
+                                decoration: BoxDecoration(
+                                  color: Colors.red[100],
+                                  borderRadius: BorderRadius.circular(3),
+                                  border: Border.all(color: Colors.red[300]!),
+                                ),
+                                child: Text(
+                                  'BERAKHIR',
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    color: Colors.red[700],
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            Text(
+                              donasi.sisaHari == 0 ? 'Selesai' : 'Sisa hari: ${donasi.sisaHari}',
+                              style: TextStyle(
+                                fontSize: 12, 
+                                color: donasi.sisaHari == 0 ? Colors.grey[600] : Colors.red, 
+                                fontWeight: FontWeight.bold
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

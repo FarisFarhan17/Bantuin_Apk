@@ -775,4 +775,23 @@ class FirebaseService {
   static Future<void> logout() async {
     clearCurrentUser();
   }
+
+  Future<void> updateUserProfile({String? username, String? password}) async {
+    final user = currentUser;
+    if (user == null) throw Exception('User not logged in');
+    final data = <String, dynamic>{};
+    if (username != null && username.isNotEmpty) data['username'] = username;
+    if (password != null && password.isNotEmpty) data['password'] = password;
+    if (data.isNotEmpty) {
+      await _db.collection('users').doc(user.id).update(data);
+      // Update local user object
+      setCurrentUser(User(
+        id: user.id,
+        userId: user.userId,
+        username: username ?? user.username,
+        password: password ?? user.password,
+        gambar: user.gambar,
+      ));
+    }
+  }
 } 

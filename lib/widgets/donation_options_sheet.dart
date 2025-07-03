@@ -146,6 +146,17 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
   }
 
   void _handleNextStep() {
+    // Check if campaign has ended (sisaHari == 0)
+    if (widget.donasi.sisaHari == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Kampanye telah berakhir. Donasi tidak dapat dilakukan.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     if (selectedDonationType == 'money') {
       if (selectedAmount < 1000) {
         return;
@@ -436,17 +447,48 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ),
+        if (widget.donasi.sisaHari == 0)
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(12),
+            margin: EdgeInsets.only(top: 16, bottom: 16),
+            decoration: BoxDecoration(
+              color: Colors.red[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.red[200]!),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.warning, color: Colors.red[600], size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Kampanye telah berakhir. Donasi tidak dapat dilakukan.',
+                    style: TextStyle(
+                      color: Colors.red[700],
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         SizedBox(height: 24),
         Row(
           children: [
             Expanded(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: selectedDonationType == 'money' ? Color(0xFF2986CC) : Colors.grey[300],
-                  foregroundColor: selectedDonationType == 'money' ? Colors.white : Colors.black87,
+                  backgroundColor: widget.donasi.sisaHari == 0 
+                      ? Colors.grey[400]
+                      : (selectedDonationType == 'money' ? Color(0xFF2986CC) : Colors.grey[300]),
+                  foregroundColor: widget.donasi.sisaHari == 0 
+                      ? Colors.grey[600]
+                      : (selectedDonationType == 'money' ? Colors.white : Colors.black87),
                   padding: EdgeInsets.symmetric(vertical: 16),
                 ),
-                onPressed: () => _handleDonationTypeSelection('money'),
+                onPressed: widget.donasi.sisaHari == 0 ? null : () => _handleDonationTypeSelection('money'),
                 child: Column(
                   children: [
                     Icon(Icons.account_balance_wallet, size: 32),
@@ -460,11 +502,15 @@ class _DonationOptionsSheetState extends State<DonationOptionsSheet> {
             Expanded(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: selectedDonationType == 'goods' ? Color(0xFF2986CC) : Colors.grey[300],
-                  foregroundColor: selectedDonationType == 'goods' ? Colors.white : Colors.black87,
+                  backgroundColor: widget.donasi.sisaHari == 0 
+                      ? Colors.grey[400]
+                      : (selectedDonationType == 'goods' ? Color(0xFF2986CC) : Colors.grey[300]),
+                  foregroundColor: widget.donasi.sisaHari == 0 
+                      ? Colors.grey[600]
+                      : (selectedDonationType == 'goods' ? Colors.white : Colors.black87),
                   padding: EdgeInsets.symmetric(vertical: 16),
                 ),
-                onPressed: () => _handleDonationTypeSelection('goods'),
+                onPressed: widget.donasi.sisaHari == 0 ? null : () => _handleDonationTypeSelection('goods'),
                 child: Column(
                   children: [
                     Icon(Icons.inventory_2, size: 32),

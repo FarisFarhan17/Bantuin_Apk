@@ -152,37 +152,78 @@ class DonasiDetailPage extends StatelessWidget {
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color.fromARGB(255, 50, 187, 95),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (donasi.sisaHari == 0)
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(12),
+                margin: EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning, color: Colors.red[600], size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Kampanye telah berakhir. Donasi tidak dapat dilakukan.',
+                        style: TextStyle(
+                          color: Colors.red[700],
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              padding: EdgeInsets.symmetric(vertical: 16.0),
-              foregroundColor: Colors.white,
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: donasi.sisaHari == 0 
+                      ? Colors.grey[400] 
+                      : Color.fromARGB(255, 50, 187, 95),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: donasi.sisaHari == 0 
+                    ? null 
+                    : () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                          ),
+                          builder: (context) => Padding(
+                            padding: EdgeInsets.only(
+                              bottom: MediaQuery.of(context).viewInsets.bottom,
+                            ),
+                            child: DonationOptionsSheet(
+                              donasi: donasi,
+                              formatter: formatter,
+                            ),
+                          ),
+                        );
+                      },
+                child: Text(
+                  donasi.sisaHari == 0 ? 'Kampanye Berakhir' : 'Donasi sekarang',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                ),
-                builder: (context) => Padding(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom,
-                  ),
-                  child: DonationOptionsSheet(
-                    donasi: donasi,
-                    formatter: formatter,
-                  ),
-                ),
-              );
-            },
-            child: Text('Donasi sekarang'),
-          ),
+          ],
         ),
       ),
     );

@@ -54,17 +54,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
-        // Update nama jika berubah
+        // Update nama dan password jika perlu
+        await FirebaseService().updateUserProfile(
+          username: _namaController.text.trim(),
+          password: _passwordController.text.isNotEmpty ? _passwordController.text : null,
+        );
         // Update gambar jika ada
         if (_profileImageBase64 != null) {
           await FirebaseService().updateUserProfilePicture(_profileImageBase64!);
         }
-        // Update password jika diisi
-        if (_passwordController.text.isNotEmpty) {
-          // TODO: Implementasi update password ke Firestore sesuai backend Anda
-          // Contoh: await FirebaseService().updateUserPassword(_passwordController.text);
-        }
-        // TODO: Implementasi update nama jika ingin disimpan ke Firestore
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Profile berhasil disimpan!')),
         );
